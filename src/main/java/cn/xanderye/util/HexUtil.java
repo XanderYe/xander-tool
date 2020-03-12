@@ -36,7 +36,7 @@ public class HexUtil {
      * 字符串转成字节流
      */
     public static byte[] hexStringToByteArray(String hex) {
-        if (hex.length() % 2 == 0) {
+        if (hex != null) {
             hex = hex.replace(" ", "").toUpperCase();
             int len = (hex.length() / 2);
             byte[] bytes = new byte[len];
