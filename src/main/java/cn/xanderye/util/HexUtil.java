@@ -36,13 +36,17 @@ public class HexUtil {
      * 字符串转成字节流
      */
     public static byte[] hexStringToByteArray(String hex) {
-        int len = (hex.length() / 2);
-        byte[] result = new byte[len];
-        char[] achar = hex.toCharArray();
-        for (int i = 0; i < len; i++) {
-            int pos = i * 2;
-            result[i] = (byte) (HEX_STRING.indexOf(achar[pos]) << 4 | HEX_STRING.indexOf(achar[pos + 1]));
+        if (hex.length() % 2 == 0) {
+            hex = hex.replace(" ", "").toUpperCase();
+            int len = (hex.length() / 2);
+            byte[] bytes = new byte[len];
+            char[] chars = hex.toCharArray();
+            for (int i = 0; i < len; i++) {
+                int pos = i * 2;
+                bytes[i] = (byte) (HEX_STRING.indexOf(chars[pos]) << 4 | HEX_STRING.indexOf(chars[pos + 1]));
+            }
+            return bytes;
         }
-        return result;
+        return null;
     }
 }
