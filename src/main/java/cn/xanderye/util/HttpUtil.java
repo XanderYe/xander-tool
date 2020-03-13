@@ -15,6 +15,7 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -69,9 +70,11 @@ public class HttpUtil {
                 .setConnectTimeout(DEFAULT_CONNECT_TIMEOUT)
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
                 // 每次请求不携带上一次cookie
-                .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+                //.setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                 .build();
-        httpClient = custom().setDefaultRequestConfig(config).build();
+        cookieStore = new BasicCookieStore();
+        httpClient = custom().setDefaultCookieStore(cookieStore)
+                .setDefaultRequestConfig(config).build();
     }
 
 
@@ -139,6 +142,8 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static String doGet(String url, Map<String, Object> headers, Map<String, Object> params) {
+        // 清空上次cookie
+        cookieStore.clear();
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -168,8 +173,6 @@ public class HttpUtil {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
-            // 获取cookie
-            cookieStore = httpClientContext.getCookieStore();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
@@ -205,6 +208,8 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static String doPost(String url, Map<String, Object> headers, Map<String, Object> params) {
+        // 清空上次cookie
+        cookieStore.clear();
         HttpPost httpPost = new HttpPost(url);
         httpPost.setHeader("User-Agent", DEFAULT_USER_AGENT);
         // 拼接参数
@@ -233,8 +238,6 @@ public class HttpUtil {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
-            // 获取cookie
-            cookieStore = httpClientContext.getCookieStore();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
@@ -290,8 +293,6 @@ public class HttpUtil {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
-            // 获取cookie
-            cookieStore = httpClientContext.getCookieStore();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
