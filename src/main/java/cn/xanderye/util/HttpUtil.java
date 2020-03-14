@@ -69,8 +69,7 @@ public class HttpUtil {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(DEFAULT_CONNECT_TIMEOUT)
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
-                // 每次请求不携带上一次cookie
-                //.setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+                .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
         cookieStore = new BasicCookieStore();
         httpClient = custom().setDefaultCookieStore(cookieStore)
