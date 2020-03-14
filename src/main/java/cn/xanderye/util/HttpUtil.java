@@ -319,6 +319,72 @@ public class HttpUtil {
     }
 
     /**
+     * 下载
+     * @param url
+     * @param headers
+     * @param params
+     * @return byte[]
+     * @author yezhendong
+     * @date 2020-03-14
+     */
+    public static byte[] download(String url, Map<String, Object> headers, Map<String, Object> params) {
+        // 清空上次cookie
+        cookieStore.clear();
+        // 拼接参数
+        if (params != null && !params.isEmpty()) {
+            List<NameValuePair> pairs = new ArrayList<>(params.size());
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                String value = (entry.getValue()).toString();
+                if (value != null) {
+                    pairs.add(new BasicNameValuePair(entry.getKey(), value));
+                }
+            }
+            try {
+                // 将请求参数和url进行拼接
+                url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.setHeader("User-Agent", DEFAULT_USER_AGENT);
+        if (headers != null && headers.size() > 0) {
+            for (Map.Entry<String, Object> entry : headers.entrySet()) {
+                httpGet.setHeader(entry.getKey(), (entry.getValue()).toString());
+            }
+        }
+        CloseableHttpResponse response = null;
+        HttpEntity resultEntity = null;
+        try {
+            HttpClientContext httpClientContext = new HttpClientContext();
+            response = httpClient.execute(httpGet, httpClientContext);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                resultEntity = response.getEntity();
+                if (resultEntity != null) {
+                    return EntityUtils.toByteArray(resultEntity);
+                }
+            } else {
+                throw new RuntimeException("error status code :" + statusCode);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (resultEntity != null) {
+                    EntityUtils.consume(resultEntity);
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+    /**
      * 忽略证数配置
      * @param
      * @return org.apache.http.conn.ssl.SSLConnectionSocketFactory
