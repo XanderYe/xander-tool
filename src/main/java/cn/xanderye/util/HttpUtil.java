@@ -40,9 +40,9 @@ import java.util.Map;
  */
 public class HttpUtil {
     /**
-     * 是否使用fiddler代理
+     * 是否使用代理
      */
-    private static boolean useFiddler = false;
+    private static boolean useProxy = false;
     /**
      * socket连接超时
      */
@@ -85,12 +85,11 @@ public class HttpUtil {
      */
     private static HttpClientBuilder custom() {
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
-        if (useFiddler) {
-            return httpClientBuilder
-                    // 忽略证书
-                    .setSSLSocketFactory(ignoreCertificates())
-                    // 使用代理
-                    .setProxy(new HttpHost("127.0.0.1", 8888));
+        // 忽略证书
+        httpClientBuilder.setSSLSocketFactory(ignoreCertificates());
+        if (useProxy) {
+            // 使用代理
+            httpClientBuilder.setProxy(new HttpHost("127.0.0.1", 8888));
         }
         return httpClientBuilder;
     }
