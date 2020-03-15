@@ -135,7 +135,6 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     private static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
-        HttpGet httpGet = new HttpGet(url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -146,12 +145,15 @@ public class HttpUtil {
                 }
             }
             try {
-                // 将请求参数和url进行拼接
-                url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+                String parameters = EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+                String symbol = url.contains("?") ? "&" : "?";
+                // 判断是否已带参数
+                url += symbol + parameters;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        HttpGet httpGet = new HttpGet(url);
         // 添加headers
         addHeaders(httpGet, headers);
         // 添加cookies
@@ -260,7 +262,6 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     private static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
-        HttpGet httpGet = new HttpGet(url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -271,12 +272,15 @@ public class HttpUtil {
                 }
             }
             try {
-                // 将请求参数和url进行拼接
-                url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+                String parameters = EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+                String symbol = url.contains("?") ? "&" : "?";
+                // 判断是否已带参数
+                url += symbol + parameters;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+        HttpGet httpGet = new HttpGet(url);
         // 添加headers
         addHeaders(httpGet, headers);
         // 添加cookies
@@ -377,7 +381,7 @@ public class HttpUtil {
     private static void addHeaders(HttpRequestBase httpRequestBase, Map<String, Object> headers) {
         // 设置默认UA
         httpRequestBase.setHeader("User-Agent", DEFAULT_USER_AGENT);
-        if (headers != null && headers.size() > 0) {
+        if (headers != null && !headers.isEmpty()) {
             for (Map.Entry<String, Object> entry : headers.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue() == null ? "" : String.valueOf(entry.getValue());
@@ -397,7 +401,7 @@ public class HttpUtil {
     private static void addCookies(HttpRequestBase httpRequestBase, Map<String, Object> cookies) {
         // 清空cookie
         cookieStore.clear();
-        if (cookies != null && cookies.size() > 0) {
+        if (cookies != null && !cookies.isEmpty()) {
             StringBuilder stringBuilder = new StringBuilder();
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
                 String key = entry.getKey();
@@ -418,7 +422,7 @@ public class HttpUtil {
      */
     public static Map<String, String> getCookies() {
         List<Cookie> basicCookies = cookieStore.getCookies();
-        if (basicCookies.size() > 0) {
+        if (!basicCookies.isEmpty()) {
             Map<String, String> cookies = new HashMap<>(16);
             for (Cookie cookie : basicCookies) {
                 cookies.put(cookie.getName(), cookie.getValue());
