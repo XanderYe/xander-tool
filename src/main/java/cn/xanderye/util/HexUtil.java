@@ -3,7 +3,7 @@ package cn.xanderye.util;
 /**
  * Created on 2020/3/2.
  *
- * @author 叶振东
+ * @author XanderYe
  */
 public class HexUtil {
 
@@ -14,7 +14,7 @@ public class HexUtil {
      *
      * @param bytes
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2019/8/6
      */
     public static String byteArrayToHexString(byte[] bytes) {

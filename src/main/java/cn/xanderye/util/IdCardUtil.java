@@ -12,7 +12,7 @@ public class IdCardUtil {
      * 生成身份证
      * @param idNum
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/12
      */
     public static String generateIdNum(String idNum) {
@@ -22,7 +22,7 @@ public class IdCardUtil {
      * 计算校验码
      * @param idNum 十七位
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/4
      */
     private static String calcCheckCode(String idNum) {
@@ -40,7 +40,7 @@ public class IdCardUtil {
      * 验证身份证
      * @param idNum
      * @return boolean
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/12
      */
     public static boolean validate(String idNum) {

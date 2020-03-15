@@ -6,7 +6,7 @@ import java.io.InputStream;
 /**
  * Created on 2020/3/2.
  *
- * @author 叶振东
+ * @author XanderYe
  */
 public class SocketUtil {
 
@@ -15,7 +15,7 @@ public class SocketUtil {
      *
      * @param inputStream
      * @return byte[]
-     * @author yezhendong
+     * @author XanderYe
      * @date 2019/8/6
      */
     public static byte[] read(InputStream inputStream) {
@@ -27,7 +27,7 @@ public class SocketUtil {
      *
      * @param inputStream
      * @return byte[]
-     * @author yezhendong
+     * @author XanderYe
      * @date 2019/8/6
      */
     public static byte[] read(InputStream inputStream, Integer length) {

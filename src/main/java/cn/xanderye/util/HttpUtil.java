@@ -80,7 +80,7 @@ public class HttpUtil {
     /**
      * 创建httpClientBuilder
      * @return org.apache.http.impl.client.HttpClientBuilder
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/14
      */
     private static HttpClientBuilder custom() {
@@ -99,7 +99,7 @@ public class HttpUtil {
         return doGet(url, null, params);
     }
 
-    public static String doGetWithCookie(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doGetWithCookies(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
         StringBuilder stringBuilder = new StringBuilder();
         if (cookies != null && cookies.size() > 0) {
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
@@ -117,7 +117,7 @@ public class HttpUtil {
         return doPost(url, null, params);
     }
 
-    public static String doPostWithCookie(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doPostWithCookies(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
         StringBuilder stringBuilder = new StringBuilder();
         if (cookies != null && cookies.size() > 0) {
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
@@ -137,7 +137,7 @@ public class HttpUtil {
      * @param headers
      * @param params
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/4
      */
     public static String doGet(String url, Map<String, Object> headers, Map<String, Object> params) {
@@ -203,7 +203,7 @@ public class HttpUtil {
      * @param headers
      * @param params
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/4
      */
     public static String doPost(String url, Map<String, Object> headers, Map<String, Object> params) {
@@ -268,7 +268,7 @@ public class HttpUtil {
      * @param headers
      * @param json
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/12
      */
     public static String doPost(String url, Map<String, Object> headers, String json) {
@@ -323,7 +323,7 @@ public class HttpUtil {
      * @param headers
      * @param params
      * @return byte[]
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020-03-14
      */
     public static byte[] download(String url, Map<String, Object> headers, Map<String, Object> params) {
@@ -387,7 +387,7 @@ public class HttpUtil {
      * 忽略证数配置
      * @param
      * @return org.apache.http.conn.ssl.SSLConnectionSocketFactory
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/14
      */
     private static SSLConnectionSocketFactory ignoreCertificates() {
@@ -404,7 +404,7 @@ public class HttpUtil {
      * 获取请求的cookie
      * @param
      * @return java.util.Map<java.lang.String,java.lang.String>
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/2/4
      */
     public static Map<String, String> getCookies() {
