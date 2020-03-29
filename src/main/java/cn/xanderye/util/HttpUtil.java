@@ -406,7 +406,7 @@ public class HttpUtil {
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue() == null ? "" : String.valueOf(entry.getValue());
-                stringBuilder.append(key).append("=").append(value).append(";");
+                stringBuilder.append(key).append("=").append(value).append("; ");
             }
             httpRequestBase.addHeader("Cookie", stringBuilder.toString());
         }
