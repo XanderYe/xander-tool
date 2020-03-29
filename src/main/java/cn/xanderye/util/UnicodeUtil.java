@@ -8,7 +8,7 @@ public class UnicodeUtil {
      * @author XanderYe
      * @date 2020-03-29
      */
-    private static String unicodeToCn(String unicode) {
+    public static String unicodeToCn(String unicode) {
         String[] uns = unicode.split("\\\\u");
         StringBuilder returnStr = new StringBuilder();
         for (int i = 1; i < uns.length; i++) {
@@ -24,7 +24,7 @@ public class UnicodeUtil {
      * @author XanderYe
      * @date 2020-03-29
      */
-    private static String cnToUnicode(String cn) {
+    public static String cnToUnicode(String cn) {
         char[] chars = cn.toCharArray();
         StringBuilder returnStr = new StringBuilder();
         for (char aChar : chars) {
