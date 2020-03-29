@@ -134,7 +134,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    private static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -199,7 +199,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    private static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
         HttpPost httpPost = new HttpPost(url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
@@ -261,7 +261,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    private static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -326,7 +326,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    private static String doPostJson(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) {
+    public static String doPostJson(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) {
         HttpPost httpPost = new HttpPost(url);
         // 拼接参数
         if (json != null && !"".equals(json)) {
