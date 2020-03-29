@@ -433,6 +433,25 @@ public class HttpUtil {
     }
 
     /**
+     * 获取请求的cookie
+     * @param
+     * @return java.util.Map<java.lang.String,java.lang.String>
+     * @author XanderYe
+     * @date 2020/2/4
+     */
+    public static Map<String, Object> getObjectCookies() {
+        List<Cookie> basicCookies = cookieStore.getCookies();
+        if (basicCookies.size() > 0) {
+            Map<String, Object> cookies = new HashMap<>(16);
+            for (Cookie cookie : basicCookies) {
+                cookies.put(cookie.getName(), cookie.getValue());
+            }
+            return cookies;
+        }
+        return null;
+    }
+
+    /**
      * 忽略证数配置
      *
      * @param

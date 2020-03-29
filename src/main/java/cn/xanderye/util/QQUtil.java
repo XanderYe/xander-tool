@@ -1,5 +1,7 @@
 package cn.xanderye.util;
 
+import java.util.Random;
+
 public class QQUtil {
 
     /**
@@ -30,5 +32,16 @@ public class QQUtil {
             hash += (hash << 5) + skey.charAt(i);
         }
         return String.valueOf(hash & 0x7fffffff);
+    }
+
+    /**
+     * qq请求的jsonp随机数
+     * @param
+     * @return java.lang.String
+     * @author yezhendong
+     * @date 2020-03-29
+     */
+    public static String getCallback() {
+        return System.currentTimeMillis() + String.valueOf(new Random().nextInt(100000));
     }
 }
