@@ -20,6 +20,17 @@ public class PropertyUtil {
     /**
      * 初始化
      *
+     * @return void
+     * @author XanderYe
+     * @date 2020-03-15
+     */
+    public static void init() {
+        init(null);
+    }
+
+    /**
+     * 初始化
+     *
      * @param url
      * @return void
      * @author XanderYe
@@ -71,6 +82,19 @@ public class PropertyUtil {
      *
      * @param key
      * @param value
+     * @return void
+     * @author XanderYe
+     * @date 2020-03-15
+     */
+    public static synchronized void save(String key, String value) {
+        save(key, value, null);
+    }
+
+    /**
+     * 重写保存方法，不转义
+     *
+     * @param key
+     * @param value
      * @param comment
      * @return void
      * @author XanderYe
@@ -105,8 +129,10 @@ public class PropertyUtil {
         try {
             fos = new FileOutputStream(new File(filePath), true);
             bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
-            bw.write("#" + comment);
-            bw.newLine();
+            if (comment != null) {
+                bw.write("#" + comment);
+                bw.newLine();
+            }
             bw.write(key + "=" + value);
             bw.newLine();
         } catch (IOException e) {
@@ -146,8 +172,10 @@ public class PropertyUtil {
                 String k = (String) enumeration.nextElement();
                 String val = properties.getProperty(k);
                 if (k.equals(key)) {
-                    bw.write("#" + comment);
-                    bw.newLine();
+                    if (comment != null) {
+                        bw.write("#" + comment);
+                        bw.newLine();
+                    }
                     bw.write(key + "=" + value);
                 } else {
                     bw.write(k + "=" + val);
