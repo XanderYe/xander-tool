@@ -452,6 +452,50 @@ public class HttpUtil {
     }
 
     /**
+     * 格式化请求头
+     * @param headerString
+     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @author XanderYe
+     * @date 2020/4/1
+     */
+    public static Map<String, Object> formatHeaders(String headerString) {
+        String[] headers = headerString.split(";");
+        if (headers.length > 0) {
+            Map<String, Object> headerMap = new HashMap<>(16);
+            for (String header : headers) {
+                String[] value = header.split(":");
+                if (value.length == 2) {
+                    headerMap.put(value[0].trim(), value[1].trim());
+                }
+            }
+            return headerMap;
+        }
+        return null;
+    }
+
+    /**
+     * 格式化请求体
+     * @param parameterString
+     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @author XanderYe
+     * @date 2020/4/1
+     */
+    public static Map<String, Object> formatParameters(String parameterString) {
+        String[] parameters = parameterString.split("&");
+        if (parameters.length > 0) {
+            Map<String, Object> headerMap = new HashMap<>(16);
+            for (String parameter : parameters) {
+                String[] value = parameter.split("=");
+                if (value.length == 2) {
+                    headerMap.put(value[0].trim(), value[1].trim());
+                }
+            }
+            return headerMap;
+        }
+        return null;
+    }
+
+    /**
      * 忽略证数配置
      *
      * @param
