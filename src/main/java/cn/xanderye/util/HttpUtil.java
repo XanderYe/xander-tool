@@ -459,16 +459,18 @@ public class HttpUtil {
      * @date 2020/4/1
      */
     public static Map<String, Object> formatHeaders(String headerString) {
-        String[] headers = headerString.split(";");
-        if (headers.length > 0) {
-            Map<String, Object> headerMap = new HashMap<>(16);
-            for (String header : headers) {
-                String[] value = header.split(":");
-                if (value.length == 2) {
-                    headerMap.put(value[0].trim(), value[1].trim());
+        if (headerString != null) {
+            String[] headers = headerString.split(";");
+            if (headers.length > 0) {
+                Map<String, Object> headerMap = new HashMap<>(16);
+                for (String header : headers) {
+                    String[] value = header.split(":");
+                    if (value.length == 2) {
+                        headerMap.put(value[0].trim(), value[1].trim());
+                    }
                 }
+                return headerMap;
             }
-            return headerMap;
         }
         return null;
     }
@@ -481,16 +483,18 @@ public class HttpUtil {
      * @date 2020/4/1
      */
     public static Map<String, Object> formatParameters(String parameterString) {
-        String[] parameters = parameterString.split("&");
-        if (parameters.length > 0) {
-            Map<String, Object> headerMap = new HashMap<>(16);
-            for (String parameter : parameters) {
-                String[] value = parameter.split("=");
-                if (value.length == 2) {
-                    headerMap.put(value[0].trim(), value[1].trim());
+        if (parameterString != null) {
+            String[] parameters = parameterString.split("&");
+            if (parameters.length > 0) {
+                Map<String, Object> headerMap = new HashMap<>(16);
+                for (String parameter : parameters) {
+                    String[] value = parameter.split("=");
+                    if (value.length == 2) {
+                        headerMap.put(value[0].trim(), value[1].trim());
+                    }
                 }
+                return headerMap;
             }
-            return headerMap;
         }
         return null;
     }
