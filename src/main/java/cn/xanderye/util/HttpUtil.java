@@ -480,6 +480,34 @@ public class HttpUtil {
     }
 
     /**
+     * 格式化cookie
+     *
+     * @param cookieString
+     * @return java.util.Map<java.lang.String, java.lang.Object>
+     * @author XanderYe
+     * @date 2020/4/1
+     */
+    public static Map<String, Object> formatCookies(String cookieString) {
+        if (cookieString != null && !"".equals(cookieString)) {
+            String[] cookies = cookieString.split(";");
+            if (cookies.length > 0) {
+                Map<String, Object> cookieMap = new HashMap<>(16);
+                for (String parameter : cookies) {
+                    String[] value = parameter.split("=");
+                    String k = value[0].trim();
+                    String v = null;
+                    if (value.length == 2) {
+                        v = value[1].trim();
+                    }
+                    cookieMap.put(k, v);
+                }
+                return cookieMap;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 格式化请求体
      *
      * @param parameterString
