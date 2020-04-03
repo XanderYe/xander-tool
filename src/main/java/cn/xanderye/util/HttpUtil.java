@@ -453,8 +453,9 @@ public class HttpUtil {
 
     /**
      * 格式化请求头
+     *
      * @param headerString
-     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @return java.util.Map<java.lang.String, java.lang.Object>
      * @author XanderYe
      * @date 2020/4/1
      */
@@ -465,9 +466,12 @@ public class HttpUtil {
                 Map<String, Object> headerMap = new HashMap<>(16);
                 for (String header : headers) {
                     String[] value = header.split(":");
+                    String k = value[0].trim();
+                    String v = null;
                     if (value.length == 2) {
-                        headerMap.put(value[0].trim(), value[1].trim());
+                        v = value[1].trim();
                     }
+                    headerMap.put(k, v);
                 }
                 return headerMap;
             }
@@ -477,8 +481,9 @@ public class HttpUtil {
 
     /**
      * 格式化请求体
+     *
      * @param parameterString
-     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @return java.util.Map<java.lang.String, java.lang.Object>
      * @author XanderYe
      * @date 2020/4/1
      */
@@ -486,14 +491,17 @@ public class HttpUtil {
         if (parameterString != null) {
             String[] parameters = parameterString.split("&");
             if (parameters.length > 0) {
-                Map<String, Object> headerMap = new HashMap<>(16);
+                Map<String, Object> paramMap = new HashMap<>(16);
                 for (String parameter : parameters) {
                     String[] value = parameter.split("=");
+                    String k = value[0].trim();
+                    String v = null;
                     if (value.length == 2) {
-                        headerMap.put(value[0].trim(), value[1].trim());
+                        v = value[1].trim();
                     }
+                    paramMap.put(k, v);
                 }
-                return headerMap;
+                return paramMap;
             }
         }
         return null;
