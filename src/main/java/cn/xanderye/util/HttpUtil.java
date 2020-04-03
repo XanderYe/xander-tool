@@ -139,7 +139,7 @@ public class HttpUtil {
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
             for (Map.Entry<String, Object> entry : params.entrySet()) {
-                String value = (entry.getValue()).toString();
+                String value = entry.getValue() == null ? null : (entry.getValue()).toString();
                 if (value != null) {
                     pairs.add(new BasicNameValuePair(entry.getKey(), value));
                 }
@@ -205,7 +205,7 @@ public class HttpUtil {
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
             for (Map.Entry<String, Object> entry : params.entrySet()) {
-                String value = (entry.getValue()).toString();
+                String value = entry.getValue() == null ? null : (entry.getValue()).toString();
                 if (value != null) {
                     pairs.add(new BasicNameValuePair(entry.getKey(), value));
                 }
@@ -266,7 +266,7 @@ public class HttpUtil {
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
             for (Map.Entry<String, Object> entry : params.entrySet()) {
-                String value = (entry.getValue()).toString();
+                String value = entry.getValue() == null ? null : (entry.getValue()).toString();
                 if (value != null) {
                     pairs.add(new BasicNameValuePair(entry.getKey(), value));
                 }
