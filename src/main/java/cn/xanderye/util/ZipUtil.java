@@ -49,7 +49,7 @@ public class ZipUtil {
             }
             ZipEntry entry;
             while (((entry = zis.getNextEntry()) != null)) {
-                File file = new File(targetPath + entry.getName());
+                File file = new File(targetPath + File.separator + entry.getName());
                 if (entry.isDirectory()) {
                     file.mkdirs();
                 } else {
