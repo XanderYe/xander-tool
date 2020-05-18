@@ -55,16 +55,15 @@ public class ZipUtil {
                 } else {
                     if (file.exists()) {
                         file.delete();
-                    } else {
-                        file.createNewFile();
-                        OutputStream os = new FileOutputStream(file);
-                        byte[] buffer = new byte[BUFFER_LENGTH];
-                        int len;
-                        while ((len = zis.read(buffer)) != -1) {
-                            os.write(buffer, 0, len);
-                        }
-                        os.close();
                     }
+                    file.createNewFile();
+                    OutputStream os = new FileOutputStream(file);
+                    byte[] buffer = new byte[BUFFER_LENGTH];
+                    int len;
+                    while ((len = zis.read(buffer)) != -1) {
+                        os.write(buffer, 0, len);
+                    }
+                    os.close();
                 }
                 zis.closeEntry();
             }
