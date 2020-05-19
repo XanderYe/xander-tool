@@ -106,7 +106,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static String doGet(String url, Map<String, Object> params) {
+    public static String doGet(String url, Map<String, Object> params) throws IOException {
         return doGet(url, null, null, params);
     }
 
@@ -120,7 +120,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static String doPost(String url, Map<String, Object> params) {
+    public static String doPost(String url, Map<String, Object> params) throws IOException {
         return doPost(url, null, null, params);
     }
 
@@ -134,7 +134,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -170,10 +170,8 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new RuntimeException("error status code :" + statusCode);
+                throw new IOException("error status code :" + statusCode);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (resultEntity != null) {
@@ -199,7 +197,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
@@ -232,10 +230,8 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new RuntimeException("error status code :" + statusCode);
+                throw new IOException("error status code :" + statusCode);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (resultEntity != null) {
@@ -261,7 +257,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) {
+    public static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -297,10 +293,8 @@ public class HttpUtil {
                     return EntityUtils.toByteArray(resultEntity);
                 }
             } else {
-                throw new RuntimeException("error status code :" + statusCode);
+                throw new IOException("error status code :" + statusCode);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (resultEntity != null) {
@@ -326,7 +320,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doPostJson(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) {
+    public static String doPostJson(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         // 拼接参数
         if (json != null && !"".equals(json)) {
@@ -351,10 +345,8 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new RuntimeException("error status code :" + statusCode);
+                throw new IOException("error status code :" + statusCode);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 if (resultEntity != null) {
