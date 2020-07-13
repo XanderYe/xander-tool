@@ -129,7 +129,7 @@ var getOpt = (url) => {
     let ssl = protocol === "https";
     let host = splits[2];
     hostname = host.split(":")[0];
-    port = host.length > 1 ? host.split(":")[1] : ssl ? 443 : 80;
+    port = host.split(":").length > 1 ? host.split(":")[1] : ssl ? 443 : 80;
     path = "/" + url.substring(url.indexOf(splits[3]));
     return {
         ssl: ssl,
