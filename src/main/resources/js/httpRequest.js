@@ -36,8 +36,11 @@ const get = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const cookies = getCookies(res.headers['set-cookie']);
-                    resolve([data, cookies]);
+                    const obj = {
+                        data: data,
+                        cookies: getCookies(res.headers['set-cookie'])
+                    }
+                    resolve(obj);
                 });
             } else {
                 reject(res.statusCode);
@@ -76,8 +79,11 @@ const post = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const cookies = getCookies(res.headers['set-cookie']);
-                    resolve([data, cookies]);
+                    const obj = {
+                        data: data,
+                        cookies: getCookies(res.headers['set-cookie'])
+                    }
+                    resolve(obj);
                 });
             } else {
                 reject(res.statusCode);
@@ -117,8 +123,11 @@ const postJSON = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const cookies = getCookies(res.headers['set-cookie']);
-                    resolve([data, cookies]);
+                    const obj = {
+                        data: data,
+                        cookies: getCookies(res.headers['set-cookie'])
+                    }
+                    resolve(obj);
                 });
             } else {
                 reject(res.statusCode);
