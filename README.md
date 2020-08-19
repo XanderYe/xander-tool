@@ -19,3 +19,11 @@ qq爬虫用到的几个qq加密算法的java版本
 ## SocketUtil
 
 读取流的两个方法，保证不丢包、不沾包的前提下提高速度
+
+## DbUtil
+
+封装jdbc操作数据库方法
+
+## CamelUnderlineUtil
+
+驼峰与下划线转换工
