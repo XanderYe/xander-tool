@@ -52,6 +52,9 @@
     <resources>
       <resource>
         <directory>src/main/resources</directory>
+        <includes>
+          <include>*.json</include>
+        </includes>
         <excludes>
           <exclude>**/js/</exclude>
         </excludes>

@@ -26,4 +26,8 @@ qq爬虫用到的几个qq加密算法的java版本
 
 ## CamelUnderlineUtil
 
-驼峰与下划线转换工
+驼峰与下划线转换工具类
+
+## StrokeUtil
+
+汉字按笔划排序工具类
