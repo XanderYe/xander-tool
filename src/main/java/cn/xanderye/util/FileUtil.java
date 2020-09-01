@@ -1,11 +1,6 @@
 package cn.xanderye.util;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Comparator;
-import java.util.stream.Stream;
 
 /**
  * Created on 2020/9/1.
@@ -60,32 +55,23 @@ public class FileUtil {
     }
 
     /**
-     * 删除文件夹
+     * 删除文件/文件夹
      * @param filePath
      * @return void
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static void deleteDictionary(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        try (Stream<Path> walk = Files.walk(path)) {
-            walk.sorted(Comparator.reverseOrder())
-                    .forEach(FileUtil::deleteFile);
+    public static void deleteFile(String filePath) throws IOException {
+        File sourceFile = new File(filePath);
+        if (!sourceFile.exists()) {
+            throw new FileNotFoundException();
         }
-    }
-
-    /**
-     * 删除文件
-     * @param filePath
-     * @return void
-     * @author XanderYe
-     * @date 2020/9/1
-     */
-    private static void deleteFile(Path filePath) {
-        try {
-            Files.delete(filePath);
-        } catch (IOException e) {
-            e.printStackTrace();
+        File[] fileList = sourceFile.listFiles();
+        if (fileList != null && fileList.length > 0) {
+            for (File f : fileList) {
+                deleteFile(f.getAbsolutePath());
+            }
         }
+        sourceFile.delete();
     }
 }
