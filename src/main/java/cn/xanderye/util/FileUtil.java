@@ -1,9 +1,11 @@
 package cn.xanderye.util;
 
 import java.io.*;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -22,13 +24,9 @@ public class FileUtil {
      * @date 2020/9/1
      */
     public static void copyFile(String sourcePath, String targetPath) throws IOException {
-        try (FileInputStream fis = new FileInputStream(sourcePath);
-             FileOutputStream fos = new FileOutputStream(targetPath)) {
-            byte[] bytes = new byte[1024];
-            int len;
-            while ((len = fis.read(bytes)) != -1) {
-                fos.write(bytes, 0, len);
-            }
+        try (FileChannel inChannel = FileChannel.open(Paths.get(sourcePath), StandardOpenOption.READ);
+             FileChannel outChannel = FileChannel.open(Paths.get(targetPath),StandardOpenOption.WRITE,StandardOpenOption.READ,StandardOpenOption.CREATE_NEW)) {
+            outChannel.transferFrom(inChannel, 0, inChannel.size());
         }
     }
 
