@@ -2,7 +2,7 @@
 
 ## HexUtil
 
-HexUtil是十六进制工具类，用来将byte数组与十六进制字符串互转。
+HexUtil是十六进制工具类，用来将byte数组与十六进制字符串互转
 
 ## HttpUtil
 
@@ -31,3 +31,11 @@ qq爬虫用到的几个qq加密算法的java版本
 ## StrokeUtil
 
 汉字按笔划排序工具类
+
+## ZipUtil
+
+zip压缩解压工具类
+
+## FileUtil
+
+文件操作工具类，支持复制和删除文件/文件夹操作

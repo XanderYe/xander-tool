@@ -24,7 +24,7 @@ public class ZipUtil {
      * @date 2020/5/18
      */
     public static void zip(String filePath, String targetPath, String zipFileName) throws Exception {
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(targetPath + zipFileName));
+        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(targetPath + File.separator + zipFileName));
         zip(out, new File(filePath));
         out.close();
     }

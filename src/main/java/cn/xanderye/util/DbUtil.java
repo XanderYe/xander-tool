@@ -17,10 +17,6 @@ public class DbUtil {
     private static String password;
     // 类加载时先初始化连接
     static {
-        loadProp();
-    }
-    // 读取属性文件
-    private static void loadProp(){
         try {
             InputStream is = DbUtil.class.getResourceAsStream("/db.properties");
             Properties p = new Properties();
@@ -32,7 +28,6 @@ public class DbUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -40,7 +35,6 @@ public class DbUtil {
      * @param
      * @return void
      */
-    // 获取连接
     public static Connection getConn(){
         try {
             if(connection == null || connection.isClosed()){
@@ -54,31 +48,16 @@ public class DbUtil {
         return null;
     }
 
-    // 关闭资源
-    public static void close(ResultSet rs, PreparedStatement ps, Connection conn){
-        try {
-            if(rs != null){
-                rs.close();
-            }
-            if(ps != null){
-                ps.close();
-            }
-            if(conn != null){
-                conn.close();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
      * 更新操作，包括（insert,update,delete）
      * @param sql
      * @param args
      * @return boolean
+     * @author XanderYe
+     * @date 2020/9/1
      */
-    public static boolean update(String sql, Object... args) {
-        int result = 0;
+    public static int update(String sql, Object... args) {
+        int affect = 0;
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -87,16 +66,13 @@ public class DbUtil {
             for (int i = 0; i < args.length; i++) {
                 ps.setObject(i + 1, args[i]);
             }
-            result = ps.executeUpdate();
+            affect = ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         } finally{
             DbUtil.close(null, ps, null);
         }
-        if(result == 0){
-            return false;
-        }
-        return true;
+        return affect;
     }
 
     // 根据id查询
@@ -133,30 +109,27 @@ public class DbUtil {
                     }
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
+        } catch (SQLException
+                | IllegalArgumentException
+                | IllegalAccessException
+                | NoSuchFieldException
+                | SecurityException
+                | InstantiationException e) {
             e.printStackTrace();
         } finally{
-            DbUtil.close(rs, ps, conn);
+            close(rs, ps, conn);
         }
         return obj;
     }
 
     /**
-     * 查询全部
+     * 查询一条
      * @param t
      * @param sql
      * @param args
-     * @return java.util.List<T>
+     * @return T
+     * @author XanderYe
+     * @date 2020/9/1
      */
     public static <T> T queryOne(Class<T> t, String sql, Object... args) {
         Connection conn = null;
@@ -191,18 +164,15 @@ public class DbUtil {
                     }
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
+        } catch (SQLException
+                | IllegalArgumentException
+                | IllegalAccessException
+                | NoSuchFieldException
+                | SecurityException
+                | InstantiationException e) {
             e.printStackTrace();
         } finally{
-            DbUtil.close(rs, ps, conn);
+            close(rs, ps, conn);
         }
         return obj;
     }
@@ -213,6 +183,8 @@ public class DbUtil {
      * @param sql
      * @param objs
      * @return java.util.List<T>
+     * @author XanderYe
+     * @date 2020/9/1
      */
     public static <T> List<T> queryAll(Class<T> t, String sql, Object... objs) {
         List<T> list = new ArrayList<>();
@@ -249,19 +221,41 @@ public class DbUtil {
                     list.add(obj);
                 }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (SecurityException e) {
+        } catch (SQLException
+                | IllegalArgumentException
+                | IllegalAccessException
+                | NoSuchFieldException
+                | SecurityException
+                | InstantiationException e) {
             e.printStackTrace();
         } finally{
-            DbUtil.close(rs, ps, conn);
+            close(rs, ps, conn);
         }
         return list;
+    }
+
+    /**
+     * 关闭资源
+     * @param rs
+     * @param ps
+     * @param conn
+     * @return void
+     * @author XanderYe
+     * @date 2020/9/1
+     */
+    public static void close(ResultSet rs, PreparedStatement ps, Connection conn){
+        try {
+            if(rs != null){
+                rs.close();
+            }
+            if(ps != null){
+                ps.close();
+            }
+            if(conn != null){
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }
