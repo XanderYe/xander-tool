@@ -39,3 +39,7 @@ zip压缩解压工具类
 ## FileUtil
 
 文件操作工具类，支持复制和删除文件/文件夹操作
+
+## JavaFxUtil
+
+JavaFx工具类，封装了JavaFx窗口的一些操作
