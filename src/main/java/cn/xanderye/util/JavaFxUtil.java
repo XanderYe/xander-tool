@@ -1,8 +1,10 @@
 package cn.xanderye.util;
 
+import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.TextArea;
 
 import java.util.Optional;
 
@@ -12,6 +14,37 @@ import java.util.Optional;
  * @author XanderYe
  */
 public class JavaFxUtil {
+
+    private static TextArea logArea = null;
+
+    /**
+     * 日志方法首先需要在Controller的initialize中执行
+     * @param textArea
+     * @return void
+     * @author XanderYe
+     * @date 2020/9/4
+     */
+    public static void initLog(TextArea textArea) {
+        logArea = textArea;
+    }
+
+    /**
+     * 打印日志
+     * @param msg
+     * @return void
+     * @author XanderYe
+     * @date 2020/9/4
+     */
+    public static void log(String msg) {
+        msg = msg.trim() + "\r\n";
+        if (logArea != null) {
+            String finalMsg = msg;
+            Platform.runLater(() -> logArea.appendText(finalMsg));
+        } else {
+            System.out.print(msg);
+        }
+    }
+
     /**
      * 确认弹窗
      * @param header
