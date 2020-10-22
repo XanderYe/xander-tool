@@ -135,6 +135,18 @@ public class HttpUtil {
     }
 
     /**
+     * POST提交JSON请求
+     * @param url
+     * @param jsonString
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2020/10/22
+     */
+    public static String doPostJSON(String url, String jsonString) throws IOException {
+        return doPostJSON(url, null, null, jsonString);
+    }
+
+    /**
      * get请求基础方法
      *
      * @param url
@@ -330,7 +342,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doPostJson(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
+    public static String doPostJSON(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
         HttpPost httpPost = new HttpPost(url);
         // 拼接参数
         if (json != null && !"".equals(json)) {
