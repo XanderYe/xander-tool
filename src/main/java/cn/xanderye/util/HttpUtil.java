@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,26 +46,36 @@ public class HttpUtil {
      * 是否使用代理
      */
     private static boolean useProxy = false;
+
     /**
      * socket连接超时
      */
     private static final int DEFAULT_SOCKET_TIMEOUT = 15000;
+
     /**
      * 请求超时
      */
     private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
+
     /**
      * 默认编码
      */
     private static final String CHARSET = "UTF-8";
+
     /**
      * 默认请求头
      */
     private static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
 
-    private static CloseableHttpClient httpClient;
+    /**
+     * HttpClient对象
+     */
+    private static final CloseableHttpClient HTTP_CLIENT;
 
-    private static CookieStore cookieStore;
+    /**
+     * Cookie管理对象
+     */
+    private static final CookieStore COOKIE_STORE;
 
     // 静态代码块初始化配置
     static {
@@ -73,11 +84,10 @@ public class HttpUtil {
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
-        cookieStore = new BasicCookieStore();
-        httpClient = custom().setDefaultCookieStore(cookieStore)
+        COOKIE_STORE = new BasicCookieStore();
+        HTTP_CLIENT = custom().setDefaultCookieStore(COOKIE_STORE)
                 .setDefaultRequestConfig(config).build();
     }
-
 
     /**
      * 创建httpClientBuilder
@@ -162,7 +172,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpGet, httpClientContext);
+            response = HTTP_CLIENT.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -170,7 +180,7 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new IOException("error status code :" + statusCode);
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
             }
         } finally {
             try {
@@ -222,7 +232,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -230,7 +240,7 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new IOException("error status code :" + statusCode);
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
             }
         } finally {
             try {
@@ -285,7 +295,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpGet, httpClientContext);
+            response = HTTP_CLIENT.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -293,7 +303,7 @@ public class HttpUtil {
                     return EntityUtils.toByteArray(resultEntity);
                 }
             } else {
-                throw new IOException("error status code :" + statusCode);
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
             }
         } finally {
             try {
@@ -337,7 +347,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -345,7 +355,7 @@ public class HttpUtil {
                     return EntityUtils.toString(resultEntity, CHARSET);
                 }
             } else {
-                throw new IOException("error status code :" + statusCode);
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
             }
         } finally {
             try {
@@ -392,7 +402,7 @@ public class HttpUtil {
      */
     private static void addCookies(HttpRequestBase httpRequestBase, Map<String, Object> cookies) {
         // 清空cookie
-        cookieStore.clear();
+        COOKIE_STORE.clear();
         if (cookies != null && !cookies.isEmpty()) {
             StringBuilder stringBuilder = new StringBuilder();
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
@@ -413,7 +423,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static Map<String, String> getCookies() {
-        List<Cookie> basicCookies = cookieStore.getCookies();
+        List<Cookie> basicCookies = COOKIE_STORE.getCookies();
         if (!basicCookies.isEmpty()) {
             Map<String, String> cookies = new HashMap<>(16);
             for (Cookie cookie : basicCookies) {
@@ -432,7 +442,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static Map<String, Object> getObjectCookies() {
-        List<Cookie> basicCookies = cookieStore.getCookies();
+        List<Cookie> basicCookies = COOKIE_STORE.getCookies();
         if (basicCookies.size() > 0) {
             Map<String, Object> cookies = new HashMap<>(16);
             for (Cookie cookie : basicCookies) {
