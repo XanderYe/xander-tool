@@ -3,6 +3,7 @@ package cn.xanderye.util;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 
 /**
  * Created on 2020/11/5.
@@ -12,44 +13,100 @@ import java.io.InputStreamReader;
 public class SystemUtil {
 
     /**
+     * 空格
+     */
+    public static final String BREAK = " ";
+    /**
+     * Tab
+     */
+    public static final String TAB = "    ";
+    /**
+     * Windows换行符
+     */
+    public static final String WINDOWS_LINE_BREAK = "\r\n";
+    /**
+     * UNIX换行符
+     */
+    public static final String UNIX_LINE_BREAK = "\r";
+
+    /**
      * 调用cmd方法，默认GBK编码
      * @param cmdStr
      * @return java.lang.String
      * @author XanderYe
      * @date 2020/11/5
      */
-    public static String executeCmd(String cmdStr) {
-        return executeCmd(cmdStr, "GBK");
+    public static String execStr(String cmdStr) {
+        return execStr(getCharset(), cmdStr);
     }
 
     /**
      * 调用cmd方法
-     * @param cmdStr
+     * @param charset
+     * @param cmds
      * @return java.lang.String
      * @author XanderYe
      * @date 2020/11/5
      */
-    public static String executeCmd(String cmdStr, String charset) {
-        Runtime run = Runtime.getRuntime();
+    public static String execStr(Charset charset, String...cmds) {
+        if (1 == cmds.length) {
+            if (cmds[0] == null || "".equals(cmds[0])) {
+                throw new NullPointerException("Empty command !");
+            }
+            cmds = cmds[0].split(BREAK);
+        }
+        Process process = null;
         try {
-            Process process = run.exec("cmd /c " + cmdStr);
+            process = new ProcessBuilder(cmds).redirectErrorStream(true).start();
             InputStream is = process.getInputStream();
             BufferedReader buffer = new BufferedReader(new InputStreamReader(is, charset));
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = buffer.readLine()) != null) {
-                sb.append(line).append("\r\n");
+                sb.append(line).append(getLineBreak());
             }
             is.close();
-            process.waitFor();
             return sb.toString();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if (null != process) {
+                process.destroy();
+            }
         }
         return null;
     }
 
-    public static void main(String[] args) {
-        System.out.println(executeCmd("D:\\SOFTWARE\\淘宝猫猫脚本\\adb.exe version"));
+    /**
+     * 判断系统环境
+     * @param
+     * @return boolean
+     * @author XanderYe
+     * @date 2020/11/5
+     */
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
+    }
+
+    /**
+     * 获取系统字符编码
+     * @param
+     * @return java.nio.charset.Charset
+     * @author XanderYe
+     * @date 2020/11/5
+     */
+    public static Charset getCharset() {
+        return isWindows() ? Charset.forName("GBK") : Charset.defaultCharset();
+    }
+
+    /**
+     * 获取系统换行符
+     * @param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2020/11/5
+     */
+    public static String getLineBreak() {
+        return isWindows() ? WINDOWS_LINE_BREAK : UNIX_LINE_BREAK;
     }
 }
