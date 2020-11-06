@@ -12,6 +12,8 @@ let options = {
     headers: {}
 }
 
+let cookiesArr = null;
+
 const get = (url, params, headers, cookies) => {
     if (!headers) {
         headers = {};
@@ -36,11 +38,8 @@ const get = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const obj = {
-                        data: data,
-                        cookies: getCookies(res.headers['set-cookie'])
-                    }
-                    resolve(obj);
+                    cookiesArr = res.headers['set-cookie'];
+                    resolve(data);
                 });
             } else {
                 reject(res.statusCode);
@@ -79,11 +78,8 @@ const post = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const obj = {
-                        data: data,
-                        cookies: getCookies(res.headers['set-cookie'])
-                    }
-                    resolve(obj);
+                    cookiesArr = res.headers['set-cookie'];
+                    resolve(data);
                 });
             } else {
                 reject(res.statusCode);
@@ -123,11 +119,8 @@ const postJSON = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    const obj = {
-                        data: data,
-                        cookies: getCookies(res.headers['set-cookie'])
-                    }
-                    resolve(obj);
+                    cookiesArr = res.headers['set-cookie'];
+                    resolve(data);
                 });
             } else {
                 reject(res.statusCode);
@@ -141,7 +134,7 @@ const postJSON = (url, params, headers, cookies) => {
     })
 }
 
-const getCookies = (cookiesArr) => {
+const getCookies = () => {
     if (cookiesArr) {
         let cookieJSON = {};
         for (const i in cookiesArr) {
@@ -191,5 +184,6 @@ const formatCookies = (cookies) => {
 module.exports = {
     get: get,
     post: post,
-    postJSON: postJSON
+    postJSON: postJSON,
+    getCookies: getCookies
 };
