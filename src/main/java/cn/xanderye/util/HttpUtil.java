@@ -42,6 +42,8 @@ import java.util.Map;
  * @date 2020/2/4
  */
 public class HttpUtil {
+
+    private static String baseUrl = "";
     /**
      * 是否使用代理
      */
@@ -107,6 +109,13 @@ public class HttpUtil {
         return httpClientBuilder;
     }
 
+    public static void setBaseUrl(String base) {
+        baseUrl = base;
+        if ('/' != base.charAt(base.length() - 1)) {
+            baseUrl += "/";
+        }
+    }
+
     /**
      * GET请求
      *
@@ -157,6 +166,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+        url = baseUrl + url;
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -220,7 +230,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
-        HttpPost httpPost = new HttpPost(url);
+        HttpPost httpPost = new HttpPost(baseUrl + url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -280,6 +290,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+        url = baseUrl + url;
         // 拼接参数
         if (params != null && !params.isEmpty()) {
             List<NameValuePair> pairs = new ArrayList<>(params.size());
@@ -343,7 +354,7 @@ public class HttpUtil {
      * @date 2020/2/4
      */
     public static String doPostJSON(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
-        HttpPost httpPost = new HttpPost(url);
+        HttpPost httpPost = new HttpPost(baseUrl + url);
         // 拼接参数
         if (json != null && !"".equals(json)) {
             StringEntity requestEntity = new StringEntity(json, CHARSET);
