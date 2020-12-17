@@ -12,7 +12,7 @@ import java.util.zip.ZipOutputStream;
  */
 public class ZipUtil {
 
-    private static final int BUFFER_LENGTH = 4096;
+    private static final int BUFFER_LENGTH = 4 * 1024;
 
     /**
      * 压缩方法
@@ -23,9 +23,10 @@ public class ZipUtil {
      * @author XanderYe
      * @date 2020/5/18
      */
-    public static void zip(String filePath, String targetPath, String zipFileName) throws Exception {
+    public static void compress(String filePath, String targetPath, String zipFileName) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(targetPath + File.separator + zipFileName));
-        zip(out, new File(filePath));
+        File file = new File(filePath);
+        compress(out, file, file.getName());
         out.close();
     }
 
@@ -53,6 +54,10 @@ public class ZipUtil {
                 if (entry.isDirectory()) {
                     file.mkdirs();
                 } else {
+                    File parentFile = file.getParentFile();
+                    if (!parentFile.exists()) {
+                        parentFile.mkdirs();
+                    }
                     if (file.exists()) {
                         file.delete();
                     }
@@ -64,36 +69,40 @@ public class ZipUtil {
                         os.write(buffer, 0, len);
                     }
                     os.close();
+                    zis.closeEntry();
                 }
-                zis.closeEntry();
             }
         } finally {
             if (zis != null) {
-                zis.close();;
+                zis.close();
             }
             if (fis != null) {
-                fis.close();;
+                fis.close();
             }
         }
     }
 
     /**
-     * 压缩单个文件
+     * 压缩递归方法
      * @param zos
      * @param f
      * @return void
      * @author XanderYe
      * @date 2020/5/18
      */
-    private static void zip(ZipOutputStream zos, File f) throws Exception {
+    private static void compress(ZipOutputStream zos, File f, String name) throws IOException {
         if (f.isDirectory()) {
             File[] fl = f.listFiles();
-            for (File file : fl) {
-                zip(zos, file);
+            if (fl == null || fl.length == 0) {
+                zos.putNextEntry(new ZipEntry(name + "/"));
+                zos.closeEntry();
+            } else {
+                for (File file : fl) {
+                    compress(zos, file, name + "/" + file.getName());
+                }
             }
         } else {
-            zos.putNextEntry(new ZipEntry(f.getName()));
-            // 创建FileInputStream对象
+            zos.putNextEntry(new ZipEntry(name));
             FileInputStream fin = new FileInputStream(f);
             byte[] buffer = new byte[BUFFER_LENGTH];
             int len;
@@ -101,6 +110,7 @@ public class ZipUtil {
                 zos.write(buffer, 0, len);
             }
             fin.close();
+            zos.closeEntry();
         }
     }
 }
