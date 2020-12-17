@@ -23,7 +23,7 @@ public class ZipUtil {
      * @author XanderYe
      * @date 2020/5/18
      */
-    public static void compress(String filePath, String targetPath, String zipFileName) throws IOException {
+    public static void zip(String filePath, String targetPath, String zipFileName) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(targetPath + File.separator + zipFileName));
         File file = new File(filePath);
         compress(out, file, file.getName());
@@ -85,24 +85,25 @@ public class ZipUtil {
     /**
      * 压缩递归方法
      * @param zos
-     * @param f
+     * @param f 文件对象
+     * @param path 文件相对路径
      * @return void
      * @author XanderYe
      * @date 2020/5/18
      */
-    private static void compress(ZipOutputStream zos, File f, String name) throws IOException {
+    private static void compress(ZipOutputStream zos, File f, String path) throws IOException {
         if (f.isDirectory()) {
             File[] fl = f.listFiles();
             if (fl == null || fl.length == 0) {
-                zos.putNextEntry(new ZipEntry(name + "/"));
+                zos.putNextEntry(new ZipEntry(path + "/"));
                 zos.closeEntry();
             } else {
                 for (File file : fl) {
-                    compress(zos, file, name + "/" + file.getName());
+                    compress(zos, file, path + "/" + file.getName());
                 }
             }
         } else {
-            zos.putNextEntry(new ZipEntry(name));
+            zos.putNextEntry(new ZipEntry(path));
             FileInputStream fin = new FileInputStream(f);
             byte[] buffer = new byte[BUFFER_LENGTH];
             int len;
