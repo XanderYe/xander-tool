@@ -4,7 +4,11 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created on 2020/11/5.
@@ -30,7 +34,21 @@ public class SystemUtil {
      */
     public static final String UNIX_LINE_BREAK = "\r";
 
+    /**
+     * 注册表反馈
+     */
     public static final String[] REG_RESULT = new String[]{"操作成功完成。"};
+
+    /**
+     * Ip正则
+     */
+    public static final Pattern IP_PATTERN = Pattern.compile("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
+
+    /**
+     * 本地Ip
+     */
+    public static final String LOCALHOST_IP = "127.0.0.1";
+
 
     /**
      * 调用cmd方法，默认GBK编码
@@ -78,6 +96,68 @@ public class SystemUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取系统Ip地址
+     * @param
+     * @return java.util.List<java.lang.String>
+     * @author XanderYe
+     * @date 2020/12/18
+     */
+    public static List<String> getSystemIp() {
+        if (isWindows()) {
+            return getWindowsIp();
+        } else {
+            return getLinuxIp();
+        }
+    }
+
+    /**
+     * 获取Windows下的Ip地址
+     * @param
+     * @return java.util.List<java.lang.String>
+     * @author XanderYe
+     * @date 2020/12/18
+     */
+    private static List<String> getWindowsIp() {
+        String res = execStr("ipconfig");
+        List<String> rowList = Arrays.asList(res.split(getLineBreak()));
+        List<String> ipList = new ArrayList<>();
+        for (String string : rowList) {
+            if(string.contains("IPv4 地址") || string.contains("IPv4 Address")){
+                Matcher mc = IP_PATTERN.matcher(string);
+                if(mc.find()){
+                    ipList.add(mc.group());
+                }
+            }
+        }
+        return ipList;
+    }
+
+    /**
+     * 获取Linux下的Ip地址
+     * @param
+     * @return java.util.List<java.lang.String>
+     * @author XanderYe
+     * @date 2020/12/18
+     */
+    private static List<String> getLinuxIp() {
+        String res = execStr("ip addr");
+        List<String> rowList = Arrays.asList(res.split(getLineBreak()));
+        List<String> ipList = new ArrayList<>();
+        for (String string : rowList) {
+            if(string.contains("inet")){
+                Matcher mc = IP_PATTERN.matcher(string);
+                if(mc.find()){
+                    String ip = mc.group();
+                    if (!LOCALHOST_IP.equals(ip)) {
+                        ipList.add(mc.group());
+                    }
+                }
+            }
+        }
+        return ipList;
     }
 
     /**
