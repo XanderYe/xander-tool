@@ -18,7 +18,8 @@ public class DbUtil {
     // 类加载时先初始化连接
     static {
         try {
-            InputStream is = DbUtil.class.getResourceAsStream("/db.properties");
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            InputStream is = classLoader.getResourceAsStream("db.properties");
             Properties p = new Properties();
             p.load(is);
             url = p.getProperty("db.url");
