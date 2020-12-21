@@ -36,14 +36,14 @@ public class DbUtil {
      * @param
      * @return void
      */
-    public static Connection getConn(){
+    public static Connection getConn() throws SQLException{
         try {
             if(connection == null || connection.isClosed()){
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(url, username, password);
             }
             return connection;
-        } catch (Exception e) {
+        } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
         return null;
@@ -57,7 +57,7 @@ public class DbUtil {
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static int update(String sql, Object... args) {
+    public static int update(String sql, Object... args) throws SQLException {
         int affect = 0;
         Connection conn = null;
         PreparedStatement ps = null;
@@ -68,16 +68,14 @@ public class DbUtil {
                 ps.setObject(i + 1, args[i]);
             }
             affect = ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally{
+        } finally {
             DbUtil.close(null, ps, null);
         }
         return affect;
     }
 
     // 根据id查询
-    public static <T> T queryById(Class<T> t, String sql, int id){
+    public static <T> T queryById(Class<T> t, String sql, int id) throws SQLException {
         Connection conn = null;
         T obj = null;
         PreparedStatement ps = null;
@@ -110,8 +108,7 @@ public class DbUtil {
                     }
                 }
             }
-        } catch (SQLException
-                | IllegalArgumentException
+        } catch (IllegalArgumentException
                 | IllegalAccessException
                 | NoSuchFieldException
                 | SecurityException
@@ -132,7 +129,7 @@ public class DbUtil {
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static <T> T queryOne(Class<T> t, String sql, Object... args) {
+    public static <T> T queryOne(Class<T> t, String sql, Object... args) throws SQLException {
         Connection conn = null;
         T obj = null;
         PreparedStatement ps = null;
@@ -165,8 +162,7 @@ public class DbUtil {
                     }
                 }
             }
-        } catch (SQLException
-                | IllegalArgumentException
+        } catch (IllegalArgumentException
                 | IllegalAccessException
                 | NoSuchFieldException
                 | SecurityException
@@ -187,7 +183,7 @@ public class DbUtil {
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static <T> List<T> queryAll(Class<T> t, String sql, Object... objs) {
+    public static <T> List<T> queryAll(Class<T> t, String sql, Object... objs) throws SQLException {
         List<T> list = new ArrayList<>();
         Connection conn = null;
         T obj = null;
@@ -222,8 +218,7 @@ public class DbUtil {
                     list.add(obj);
                 }
             }
-        } catch (SQLException
-                | IllegalArgumentException
+        } catch (IllegalArgumentException
                 | IllegalAccessException
                 | NoSuchFieldException
                 | SecurityException
