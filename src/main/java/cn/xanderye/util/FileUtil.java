@@ -13,6 +13,26 @@ import java.util.stream.Stream;
  * @author XanderYe
  */
 public class FileUtil {
+
+    /**
+     * 默认缓存大小
+     */
+    public static final int DEFAULT_BUFFER_SIZE = 1024;
+
+    /**
+     * 默认中等缓存大小
+     */
+    public static final int DEFAULT_MIDDLE_BUFFER_SIZE = 4096;
+
+    /**
+     * 默认大缓存大小
+     */
+    public static final int DEFAULT_LARGE_BUFFER_SIZE = 8192;
+
+    /**
+     * 数据流末尾
+     */
+    public static final int EOF = -1;
     /**
      * 复制单文件
      * @param sourcePath 源文件路径
@@ -23,11 +43,13 @@ public class FileUtil {
      */
     public static void copyFile(String sourcePath, String targetPath) throws IOException {
         try (FileInputStream fis = new FileInputStream(sourcePath);
-             FileOutputStream fos = new FileOutputStream(targetPath)) {
-            byte[] bytes = new byte[1024];
+             BufferedInputStream bis = new BufferedInputStream(fis);
+             FileOutputStream fos = new FileOutputStream(targetPath);
+             BufferedOutputStream bos = new BufferedOutputStream(fos)) {
+            byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
             int len;
-            while ((len = fis.read(bytes)) != -1) {
-                fos.write(bytes, 0, len);
+            while ((len = bis.read(bytes)) != EOF) {
+                bos.write(bytes, 0, len);
             }
         }
     }
