@@ -16,17 +16,19 @@ public class ZipUtil {
 
     /**
      * 压缩方法
-     * @param filePath 源文件（夹）路径
      * @param targetPath 目标路径
      * @param zipFileName 压缩文件名
+     * @param filePaths 源文件（夹）路径
      * @return void
      * @author XanderYe
      * @date 2020/5/18
      */
-    public static void zip(String filePath, String targetPath, String zipFileName) throws IOException {
+    public static void zip(String targetPath, String zipFileName, String...filePaths) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(targetPath + File.separator + zipFileName));
-        File file = new File(filePath);
-        compress(out, file, file.getName());
+        for (String filePath : filePaths) {
+            File file = new File(filePath);
+            compress(out, file, file.getName());
+        }
         out.close();
     }
 
