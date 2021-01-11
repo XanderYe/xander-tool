@@ -1,10 +1,13 @@
 package cn.xanderye.util;
 
 import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 /**
@@ -33,6 +36,7 @@ public class FileUtil {
      * 数据流末尾
      */
     public static final int EOF = -1;
+
     /**
      * 复制单文件
      * @param sourcePath 源文件路径
@@ -109,5 +113,39 @@ public class FileUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 获取文件编码
+     * @param filePath
+     * @return java.nio.charset.Charset
+     * @author XanderYe
+     * @date 2021/1/11
+     */
+    public static Charset identifyCharset(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new FileNotFoundException();
+        }
+        Charset charset;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] head = new byte[3];
+            fis.read(head);
+            //判断TXT文件编码格式
+            if (head[0] == -1 && head[1] == -2) {
+                //Unicode              -1,-2,84
+                charset = Charset.forName("Unicode");
+            } else if (head[0] == -2 && head[1] == -1) {
+                //Unicode big endian   -2,-1,0,84
+                charset = StandardCharsets.UTF_16;
+            } else if (head[0] == -17 && head[1] == -69 && head[2] == -65) {
+                //UTF-8                -17,-69,-65,84
+                charset = StandardCharsets.UTF_8;
+            } else {
+                //ANSI                  84 = T
+                charset = Charset.forName("gb2312");
+            }
+        }
+        return charset;
     }
 }
