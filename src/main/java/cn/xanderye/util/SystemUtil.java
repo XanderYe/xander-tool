@@ -62,6 +62,17 @@ public class SystemUtil {
     }
 
     /**
+     * 调用cmd方法，默认GBK编码
+     * @param cmds
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2020/11/5
+     */
+    public static String execStr(String...cmds) {
+        return execStr(getCharset(), cmds);
+    }
+
+    /**
      * 调用cmd方法
      * @param charset
      * @param cmds
@@ -158,6 +169,55 @@ public class SystemUtil {
             }
         }
         return ipList;
+    }
+
+    /**
+     * 获取CpuId
+     * @param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/22
+     */
+    public static String getCpuId() {
+        if (isWindows()) {
+            return getWindowsCpuId();
+        } else {
+            return getLinuxCpuId();
+        }
+    }
+
+    /**
+     * Windows下获取CpuId
+     * @param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/22
+     */
+    private static String getWindowsCpuId() {
+        String serial = null;
+        String res = execStr("wmic", "cpu", "get", "ProcessorId");
+        String[] strs = res.split("(\r|\n|\r\n)");
+        if (strs.length >= 4) {
+            serial = strs[4].trim();
+        }
+        return serial;
+    }
+
+    /**
+     * Linux下获取CpuId
+     * @param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/22
+     */
+    private static String getLinuxCpuId() {
+        String serial = null;
+        String res = execStr("sh", "-c", "dmidecode -t processor | grep 'ID'");
+        if (res.contains(":")) {
+            serial = res.substring(res.indexOf(":") + 1);
+            serial = serial.replace(" ", "").trim();
+        }
+        return serial;
     }
 
     /**
