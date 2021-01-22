@@ -179,7 +179,7 @@ public class SystemUtil {
      * @author XanderYe
      * @date 2021/1/22
      */
-    public static String getCpuId() {
+    public static List<String> getCpuId() {
         if (isWindows()) {
             return getWindowsCpuId();
         } else {
@@ -194,15 +194,13 @@ public class SystemUtil {
      * @author XanderYe
      * @date 2021/1/22
      */
-    private static String getWindowsCpuId() {
-        String serial = null;
+    private static List<String> getWindowsCpuId() {
         String res = SystemUtil.execStr("wmic", "cpu", "get", "ProcessorId");
         String[] strs = res.split("(\r|\n|\r\n)");
-        List<String> stringList = Arrays.stream(strs).filter(str -> str.length() > 0).collect(Collectors.toList());
-        if (stringList.size() > 1) {
-            serial = stringList.get(1).trim();
-        }
-        return serial;
+        return Arrays.stream(strs)
+                .filter(str -> !str.contains("ProcessorId") && str.length() > 0)
+                .map(String::trim)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -212,14 +210,12 @@ public class SystemUtil {
      * @author XanderYe
      * @date 2021/1/22
      */
-    private static String getLinuxCpuId() {
-        String serial = null;
+    private static List<String> getLinuxCpuId() {
         String res = execStr("sh", "-c", "dmidecode -t processor | grep 'ID'");
-        if (res.contains(":")) {
-            serial = res.substring(res.indexOf(":") + 1);
-            serial = serial.replace(" ", "").trim();
-        }
-        return serial;
+        String[] strs = res.split("(\r|\n|\r\n)");
+        return Arrays.stream(strs)
+                .map(str -> res.substring(res.indexOf(":") + 1).replace(" ", "").trim())
+                .collect(Collectors.toList());
     }
 
     /**
