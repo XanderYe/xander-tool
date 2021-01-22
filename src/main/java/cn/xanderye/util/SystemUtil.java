@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created on 2020/11/5.
@@ -195,10 +196,11 @@ public class SystemUtil {
      */
     private static String getWindowsCpuId() {
         String serial = null;
-        String res = execStr("wmic", "cpu", "get", "ProcessorId");
+        String res = SystemUtil.execStr("wmic", "cpu", "get", "ProcessorId");
         String[] strs = res.split("(\r|\n|\r\n)");
-        if (strs.length >= 4) {
-            serial = strs[4].trim();
+        List<String> stringList = Arrays.stream(strs).filter(str -> str.length() > 0).collect(Collectors.toList());
+        if (stringList.size() > 1) {
+            serial = stringList.get(1).trim();
         }
         return serial;
     }
