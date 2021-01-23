@@ -107,7 +107,6 @@ public class MsgPushUtil {
             params = new HashMap<>(16);
             params.put("sound", sound);
         }
-        System.out.println(url);
         return HttpUtil.doGet(url, params);
     }
 
