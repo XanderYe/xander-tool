@@ -31,8 +31,8 @@ public class MsgPushUtil {
 
     /**
      * Server酱推送
-     * @see <a href="http://sc.ftqq.com/3.version">Server酱推送</a>
      *
+     * @see <a href="http://sc.ftqq.com/3.version">Server酱推送</a>
      * @param scKey
      * @param title
      * @param content
@@ -52,6 +52,7 @@ public class MsgPushUtil {
     /**
      * 钉钉机器人推送
      *
+     * @see <a href="https://developers.dingtalk.com/document/app/custom-robot-access">钉钉机器人开发文档</a>
      * @param token
      * @param secret
      * @param content
