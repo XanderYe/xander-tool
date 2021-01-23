@@ -27,14 +27,18 @@ public class MsgPushUtil {
 
     private static final String DB_BOT_URL = "https://oapi.dingtalk.com/robot/send?access_token=${token}";
 
+    private static final String BARK_URL = "https://api.day.app/${deviceId}/${content}";
+
     /**
+     * Server酱推送
+     * @see <a href="http://sc.ftqq.com/3.version">Server酱推送</a>
+     *
      * @param scKey
      * @param title
      * @param content
      * @return java.lang.String
      * @author XanderYe
      * @date 2021/1/23
-     * @see <a href="http://sc.ftqq.com/3.version">Server酱推送</a>
      */
     public static String serverChanPush(String scKey, String title, String content) throws IOException {
         String url = SERVER_CHAN_URL.replace("${scKey}", scKey);
@@ -47,10 +51,11 @@ public class MsgPushUtil {
 
     /**
      * 钉钉机器人推送
+     *
      * @param token
      * @param secret
      * @param content
-     * @param isAtAll 是否@全体
+     * @param isAtAll      是否@全体
      * @param atMobileList @的手机号列表
      * @return java.lang.String
      * @author XanderYe
@@ -80,7 +85,34 @@ public class MsgPushUtil {
     }
 
     /**
+     * ios bark推送
+     *
+     * @see <a href="https://apps.apple.com/cn/app/bark-customed-notifications/id1403753865">Bark</a>"
+     * @param deviceId
+     * @param content
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/23
+     */
+    public static String barkPush(String deviceId, String content, String sound) throws IOException {
+        try {
+            content = URLEncoder.encode(content, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        String url = BARK_URL.replace("${deviceId}", deviceId).replace("${content}", content);
+        Map<String, Object> params = null;
+        if (null != sound && !"".equals(sound)) {
+            params = new HashMap<>(16);
+            params.put("sound", sound);
+        }
+        System.out.println(url);
+        return HttpUtil.doGet(url, params);
+    }
+
+    /**
      * 钉钉机器人签名
+     *
      * @param timestamp
      * @param secret
      * @return java.lang.String

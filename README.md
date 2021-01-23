@@ -50,4 +50,4 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 
 ## MsgPushUtil
 
-消息推送工具类 依赖HttpUtil，支持Server酱和钉钉机器人
+消息推送工具类 依赖HttpUtil，支持Server酱，钉钉机器人和iosBark推送
