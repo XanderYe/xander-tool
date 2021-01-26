@@ -45,7 +45,7 @@ public class MsgPushUtil {
         Map<String, Object> params = new HashMap<>(16);
         params.put("text", title);
         params.put("desp", content);
-        return HttpUtil.doPost(url, params);
+        return HttpUtil.doPost(url, params).getResponse();
     }
 
 
@@ -82,7 +82,7 @@ public class MsgPushUtil {
         params.put("msgtype", "text");
         params.put("text", contentJson);
         params.put("at", atJson);
-        return HttpUtil.doPostJSON(webhook, params.toJSONString());
+        return HttpUtil.doPostJSON(webhook, params.toJSONString()).getResponse();
     }
 
     /**
@@ -107,7 +107,7 @@ public class MsgPushUtil {
             params = new HashMap<>(16);
             params.put("sound", sound);
         }
-        return HttpUtil.doGet(url, params);
+        return HttpUtil.doGet(url, params).getResponse();
     }
 
     /**

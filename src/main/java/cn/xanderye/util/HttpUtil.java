@@ -1,10 +1,6 @@
 package cn.xanderye.util;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.CookieStore;
+import org.apache.http.*;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -14,9 +10,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
@@ -30,10 +24,8 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * http请求工具
@@ -47,7 +39,7 @@ public class HttpUtil {
     /**
      * 是否使用代理
      */
-    private static boolean useProxy = false;
+    private static final boolean USE_PROXY = false;
 
     /**
      * socket连接超时
@@ -74,11 +66,6 @@ public class HttpUtil {
      */
     private static final CloseableHttpClient HTTP_CLIENT;
 
-    /**
-     * Cookie管理对象
-     */
-    private static final CookieStore COOKIE_STORE;
-
     // 静态代码块初始化配置
     static {
         RequestConfig config = RequestConfig.custom()
@@ -86,9 +73,7 @@ public class HttpUtil {
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
                 .setCookieSpec(CookieSpecs.STANDARD)
                 .build();
-        COOKIE_STORE = new BasicCookieStore();
-        HTTP_CLIENT = custom().setDefaultCookieStore(COOKIE_STORE)
-                .setDefaultRequestConfig(config).build();
+        HTTP_CLIENT = custom().setDefaultRequestConfig(config).build();
     }
 
     /**
@@ -102,7 +87,7 @@ public class HttpUtil {
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
         // 忽略证书
         httpClientBuilder.setSSLSocketFactory(ignoreCertificates());
-        if (useProxy) {
+        if (USE_PROXY) {
             // 使用代理
             httpClientBuilder.setProxy(new HttpHost("127.0.0.1", 8888));
         }
@@ -121,11 +106,11 @@ public class HttpUtil {
      *
      * @param url
      * @param params
-     * @return java.lang.String
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static String doGet(String url, Map<String, Object> params) throws IOException {
+    public static ResEntity doGet(String url, Map<String, Object> params) throws IOException {
         return doGet(url, null, null, params);
     }
 
@@ -135,11 +120,11 @@ public class HttpUtil {
      *
      * @param url
      * @param params
-     * @return java.lang.String
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static String doPost(String url, Map<String, Object> params) throws IOException {
+    public static ResEntity doPost(String url, Map<String, Object> params) throws IOException {
         return doPost(url, null, null, params);
     }
 
@@ -147,11 +132,11 @@ public class HttpUtil {
      * POST提交JSON请求
      * @param url
      * @param jsonString
-     * @return java.lang.String
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020/10/22
      */
-    public static String doPostJSON(String url, String jsonString) throws IOException {
+    public static ResEntity doPostJSON(String url, String jsonString) throws IOException {
         return doPostJSON(url, null, null, jsonString);
     }
 
@@ -161,11 +146,11 @@ public class HttpUtil {
      * @param url
      * @param headers
      * @param params
-     * @return java.lang.String
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+    public static ResEntity doGet(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         url = baseUrl + url;
         // 拼接参数
         if (params != null && !params.isEmpty()) {
@@ -199,7 +184,12 @@ public class HttpUtil {
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
-                    return EntityUtils.toString(resultEntity, CHARSET);
+                    String res = EntityUtils.toString(resultEntity, CHARSET);
+                    String cookieString = getCookieString(response);
+                    ResEntity resEntity = new ResEntity();
+                    resEntity.setResponse(res);
+                    resEntity.setCookies(formatCookies(cookieString));
+                    return resEntity;
                 }
             } else {
                 throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
@@ -216,7 +206,7 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return null;
+        return new ResEntity();
     }
 
     /**
@@ -225,11 +215,11 @@ public class HttpUtil {
      * @param url
      * @param headers
      * @param params
-     * @return java.lang.String
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static String doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+    public static ResEntity doPost(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         HttpPost httpPost = new HttpPost(baseUrl + url);
         // 拼接参数
         if (params != null && !params.isEmpty()) {
@@ -259,7 +249,12 @@ public class HttpUtil {
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
-                    return EntityUtils.toString(resultEntity, CHARSET);
+                    String res = EntityUtils.toString(resultEntity, CHARSET);
+                    String cookieString = getCookieString(response);
+                    ResEntity resEntity = new ResEntity();
+                    resEntity.setResponse(res);
+                    resEntity.setCookies(formatCookies(cookieString));
+                    return resEntity;
                 }
             } else {
                 throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
@@ -276,7 +271,64 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return null;
+        return new ResEntity();
+    }
+
+    /**
+     * POST提交JSON基础方法
+     *
+     * @param url
+     * @param headers
+     * @param json
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author XanderYe
+     * @date 2020/2/4
+     */
+    public static ResEntity doPostJSON(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + url);
+        // 拼接参数
+        if (json != null && !"".equals(json)) {
+            StringEntity requestEntity = new StringEntity(json, CHARSET);
+            requestEntity.setContentEncoding(CHARSET);
+            requestEntity.setContentType("application/json");
+            httpPost.setEntity(requestEntity);
+        }
+        // 添加headers
+        addHeaders(httpPost, headers);
+        // 添加cookies
+        addCookies(httpPost, cookies);
+        CloseableHttpResponse response = null;
+        HttpEntity resultEntity = null;
+        try {
+            HttpClientContext httpClientContext = new HttpClientContext();
+            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                resultEntity = response.getEntity();
+                if (resultEntity != null) {
+                    String res = EntityUtils.toString(resultEntity, CHARSET);
+                    String cookieString = getCookieString(response);
+                    ResEntity resEntity = new ResEntity();
+                    resEntity.setResponse(res);
+                    resEntity.setCookies(formatCookies(cookieString));
+                    return resEntity;
+                }
+            } else {
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
+            }
+        } finally {
+            try {
+                if (resultEntity != null) {
+                    EntityUtils.consume(resultEntity);
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new ResEntity();
     }
 
     /**
@@ -344,58 +396,6 @@ public class HttpUtil {
     }
 
     /**
-     * POST提交JSON基础方法
-     *
-     * @param url
-     * @param headers
-     * @param json
-     * @return org.apache.http.HttpEntity
-     * @author XanderYe
-     * @date 2020/2/4
-     */
-    public static String doPostJSON(String url, Map<String, Object> headers, Map<String, Object> cookies, String json) throws IOException {
-        HttpPost httpPost = new HttpPost(baseUrl + url);
-        // 拼接参数
-        if (json != null && !"".equals(json)) {
-            StringEntity requestEntity = new StringEntity(json, CHARSET);
-            requestEntity.setContentEncoding(CHARSET);
-            requestEntity.setContentType("application/json");
-            httpPost.setEntity(requestEntity);
-        }
-        // 添加headers
-        addHeaders(httpPost, headers);
-        // 添加cookies
-        addCookies(httpPost, cookies);
-        CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    return EntityUtils.toString(resultEntity, CHARSET);
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
-        } finally {
-            try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    /**
      * 添加cookie
      *
      * @param httpRequestBase
@@ -424,8 +424,6 @@ public class HttpUtil {
      * @date 2020-03-15
      */
     private static void addCookies(HttpRequestBase httpRequestBase, Map<String, Object> cookies) {
-        // 清空cookie
-        COOKIE_STORE.clear();
         if (cookies != null && !cookies.isEmpty()) {
             StringBuilder stringBuilder = new StringBuilder();
             for (Map.Entry<String, Object> entry : cookies.entrySet()) {
@@ -438,42 +436,15 @@ public class HttpUtil {
     }
 
     /**
-     * 获取请求的cookie
-     *
-     * @param
-     * @return java.util.Map<java.lang.String, java.lang.String>
+     * 从请求头中获取cookie字符串
+     * @param response
+     * @return java.lang.String
      * @author XanderYe
-     * @date 2020/2/4
+     * @date 2021/1/26
      */
-    public static Map<String, String> getCookies() {
-        List<Cookie> basicCookies = COOKIE_STORE.getCookies();
-        if (!basicCookies.isEmpty()) {
-            Map<String, String> cookies = new HashMap<>(16);
-            for (Cookie cookie : basicCookies) {
-                cookies.put(cookie.getName(), cookie.getValue());
-            }
-            return cookies;
-        }
-        return null;
-    }
-
-    /**
-     * 获取请求的cookie
-     * @param
-     * @return java.util.Map<java.lang.String,java.lang.String>
-     * @author XanderYe
-     * @date 2020/2/4
-     */
-    public static Map<String, Object> getObjectCookies() {
-        List<Cookie> basicCookies = COOKIE_STORE.getCookies();
-        if (basicCookies.size() > 0) {
-            Map<String, Object> cookies = new HashMap<>(16);
-            for (Cookie cookie : basicCookies) {
-                cookies.put(cookie.getName(), cookie.getValue());
-            }
-            return cookies;
-        }
-        return null;
+    public static String getCookieString(CloseableHttpResponse response) {
+        Header[] headers = response.getHeaders("Set-Cookie");
+        return Arrays.stream(headers).map(Header::getValue).collect(Collectors.joining("; "));
     }
 
     /**
@@ -512,23 +483,21 @@ public class HttpUtil {
      * @date 2020/4/1
      */
     public static Map<String, Object> formatCookies(String cookieString) {
+        Map<String, Object> cookieMap = new HashMap<>(16);
         if (cookieString != null && !"".equals(cookieString)) {
             String[] cookies = cookieString.split(";");
             if (cookies.length > 0) {
-                Map<String, Object> cookieMap = new HashMap<>(16);
                 for (String parameter : cookies) {
-                    String[] value = parameter.split("=");
-                    String k = value[0].trim();
-                    String v = null;
-                    if (value.length == 2) {
-                        v = value[1].trim();
+                    int eqIndex = parameter.indexOf("=");
+                    if (eqIndex > -1) {
+                        String k = parameter.substring(0, eqIndex).trim();
+                        String v = parameter.substring(eqIndex + 1).trim();
+                        cookieMap.put(k, v);
                     }
-                    cookieMap.put(k, v);
                 }
-                return cookieMap;
             }
         }
-        return null;
+        return cookieMap;
     }
 
     /**
@@ -575,5 +544,36 @@ public class HttpUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static class ResEntity {
+
+        private String response;
+
+        private Map<String, Object> cookies;
+
+        public String getResponse() {
+            return response;
+        }
+
+        public void setResponse(String response) {
+            this.response = response;
+        }
+
+        public Map<String, Object> getCookies() {
+            return cookies;
+        }
+
+        public void setCookies(Map<String, Object> cookies) {
+            this.cookies = cookies;
+        }
+
+        @Override
+        public String toString() {
+            return "ResEntity{" +
+                    "response='" + response + '\'' +
+                    ", cookies=" + cookies +
+                    '}';
+        }
     }
 }
