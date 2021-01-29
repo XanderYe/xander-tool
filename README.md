@@ -1,8 +1,8 @@
 # 自用工具包
 
-## [HexUtil](src/main/java/cn/xanderye/util/HexUtil.java)
+## [CodecUtil](src/main/java/cn/xanderye/util/CodecUtil.java)
 
-HexUtil是十六进制工具类，用来将byte数组与十六进制字符串互转
+编码工具类，整合unicode、base64、十六进制编码方法
 
 ## [HttpUtil](src/main/java/cn/xanderye/util/HttpUtil.java)
 

@@ -15,7 +15,8 @@ import java.io.InputStream;
 public class StrokeUtil {
     private static JSONObject strokeJson;
     static {
-        try (InputStream inputStream = StrokeUtil.class.getClassLoader().getResourceAsStream("stroke.json")){
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try (InputStream inputStream = classLoader.getResourceAsStream("stroke.json")){
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             byte[] bytes = new byte[1024];
             int len;
@@ -48,7 +49,7 @@ public class StrokeUtil {
      * @param a
      * @param b
      * @return java.lang.Integer
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/8/24
      */
     public static Integer compareAsc(Integer a, Integer b) {
@@ -62,7 +63,7 @@ public class StrokeUtil {
      * @param a
      * @param b
      * @return java.lang.Integer
-     * @author yezhendong
+     * @author XanderYe
      * @date 2020/8/24
      */
     public static Integer compareDesc(Integer a, Integer b) {
