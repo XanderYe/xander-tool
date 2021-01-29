@@ -244,9 +244,7 @@ public class SystemUtil {
      */
     public static boolean deleteReg(String path, String key) {
         String command = "reg delete \"" + path + "\" /v " + key + " /f";
-        System.out.println(command);
         String res = execStr(command).replaceAll("[\\r|\\n|\\\\s]", "");
-        System.out.println(res);
         return Arrays.asList(REG_RESULT).contains(res);
     }
 
