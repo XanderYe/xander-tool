@@ -4,16 +4,6 @@ const querystring = require('querystring');
 
 const defaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
 
-let options = {
-    hostname: "",
-    port: 80,
-    path: "",
-    method: "GET",
-    headers: {}
-}
-
-let cookiesArr = null;
-
 const get = (url, params, headers, cookies) => {
     if (!headers) {
         headers = {};
@@ -22,10 +12,10 @@ const get = (url, params, headers, cookies) => {
         headers['User-Agent'] = defaultUserAgent;
     }
     if (cookies) {
-        headers['Cookie'] = formatCookies(cookies);
+        headers['Cookie'] = getCookieString(cookies);
     }
     const opt = getOpt(url);
-    options = {
+    const options = {
         hostname: opt.hostname,
         port: opt.port,
         path: params ? opt.path + "?" + querystring.stringify(params) : opt.path,
@@ -38,8 +28,9 @@ const get = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    cookiesArr = res.headers['set-cookie'];
-                    resolve(data);
+                    let cookiesArr = res.headers['set-cookie'];
+                    cookies = formatCookies(cookiesArr);
+                    resolve([data, cookies]);
                 });
             } else {
                 reject(res.statusCode);
@@ -62,10 +53,10 @@ const post = (url, params, headers, cookies) => {
     }
     headers['Content-Type'] = "application/x-www-form-urlencoded";
     if (cookies) {
-        headers['Cookie'] = formatCookies(cookies);
+        headers['Cookie'] = getCookieString(cookies);
     }
     const opt = getOpt(url);
-    options = {
+    const options = {
         hostname: opt.hostname,
         port: opt.port,
         path: opt.path,
@@ -78,8 +69,9 @@ const post = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    cookiesArr = res.headers['set-cookie'];
-                    resolve(data);
+                    let cookiesArr = res.headers['set-cookie'];
+                    cookies = formatCookies(cookiesArr);
+                    resolve([data, cookies]);
                 });
             } else {
                 reject(res.statusCode);
@@ -103,10 +95,10 @@ const postJSON = (url, params, headers, cookies) => {
     }
     headers['Content-Type'] = "application/json";
     if (cookies) {
-        headers['Cookie'] = formatCookies(cookies);
+        headers['Cookie'] = getCookieString(cookies);
     }
     const opt = getOpt(url);
-    options = {
+    const options = {
         hostname: opt.hostname,
         port: opt.port,
         path: opt.path,
@@ -119,8 +111,9 @@ const postJSON = (url, params, headers, cookies) => {
             res.setEncoding("utf-8");
             if (res.statusCode === 200) {
                 res.on("data", (data) => {
-                    cookiesArr = res.headers['set-cookie'];
-                    resolve(data);
+                    let cookiesArr = res.headers['set-cookie'];
+                    cookies = formatCookies(cookiesArr);
+                    resolve([data, cookies]);
                 });
             } else {
                 reject(res.statusCode);
@@ -132,25 +125,6 @@ const postJSON = (url, params, headers, cookies) => {
         req.write(JSON.stringify(params));
         req.end();
     })
-}
-
-const getCookies = () => {
-    if (cookiesArr) {
-        let cookieJSON = {};
-        for (const i in cookiesArr) {
-            let cookie = cookiesArr[i];
-            if (cookie) {
-                const ss = cookie.substring(0, cookie.indexOf(";")).split("=");
-                const key = ss[0] ? ss[0].trim() : ss[0];
-                const value = ss[1] ? ss[1].trim() : ss[1];
-                if (key) {
-                    cookieJSON[key] = value;
-                }
-            }
-        }
-        return cookieJSON;
-    }
-    return "";
 }
 
 const getOpt = (url) => {
@@ -173,7 +147,7 @@ const getOpt = (url) => {
     }
 }
 
-const formatCookies = (cookies) => {
+const getCookieString = (cookies) => {
     let cookieString = "";
     for(const key in cookies){
         cookieString += key + "=" + cookies[key] + ";";
@@ -181,9 +155,24 @@ const formatCookies = (cookies) => {
     return cookieString;
 }
 
+const formatCookies = (cookiesArr) => {
+    let cookieJSON = {};
+    for (const i in cookiesArr) {
+        let cookie = cookiesArr[i];
+        if (cookie) {
+            const ss = cookie.substring(0, cookie.indexOf(";")).split("=");
+            const key = ss[0] ? ss[0].trim() : ss[0];
+            const value = ss[1] ? ss[1].trim() : ss[1];
+            if (key) {
+                cookieJSON[key] = value;
+            }
+        }
+    }
+    return cookieJSON;
+}
+
 module.exports = {
     get: get,
     post: post,
-    postJSON: postJSON,
-    getCookies: getCookies
+    postJSON: postJSON
 };
