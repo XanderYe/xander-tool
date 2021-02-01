@@ -15,6 +15,9 @@ public class DbUtil {
     private static String url;
     private static String username;
     private static String password;
+
+    private static final char UNDERLINE = '_';
+
     // 类加载时先初始化连接
     static {
         try {
@@ -33,24 +36,28 @@ public class DbUtil {
 
     /**
      * 初始化资源池
+     *
      * @param
      * @return void
      */
-    public static Connection getConn() throws SQLException{
+    public static Connection getConn() throws SQLException {
         try {
-            if(connection == null || connection.isClosed()){
+            if (connection == null || connection.isClosed()) {
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(url, username, password);
             }
-            return connection;
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        return null;
+        if (connection == null) {
+            throw new RuntimeException("Database connect failed.");
+        }
+        return connection;
     }
 
     /**
      * 更新操作，包括（insert,update,delete）
+     *
      * @param sql
      * @param args
      * @return boolean
@@ -58,7 +65,7 @@ public class DbUtil {
      * @date 2020/9/1
      */
     public static int update(String sql, Object... args) throws SQLException {
-        int affect = 0;
+        int affect;
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -69,13 +76,13 @@ public class DbUtil {
             }
             affect = ps.executeUpdate();
         } finally {
-            DbUtil.close(null, ps, null);
+            DbUtil.close(null, ps, conn);
         }
         return affect;
     }
 
     // 根据id查询
-    public static <T> T queryById(Class<T> t, String sql, int id) throws SQLException {
+    public static <T> T queryById(Class<T> clazz, String sql, int id) throws SQLException {
         Connection conn = null;
         T obj = null;
         PreparedStatement ps = null;
@@ -85,28 +92,9 @@ public class DbUtil {
             ps = conn.prepareStatement(sql);
             ps.setInt(1, id);
             rs = ps.executeQuery();
-            if(rs.next()){
-
-                ResultSetMetaData rsmd = rs.getMetaData();
-                int columnCount = rsmd.getColumnCount();
-                Map<String,Object> map = new HashMap<>();
-
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = rsmd.getColumnName(i);
-                    Object value = rs.getObject(columnName);
-                    map.put(columnName, value);
-                }
-
-                if(!map.isEmpty()){
-                    Set<String> columnNames = map.keySet();
-                    obj = t.newInstance();
-                    for(String column : columnNames){
-                        Object value = map.get(column);
-                        Field f  = t.getDeclaredField(CamelUnderlineUtil.underlineToCamel(column));
-                        f.setAccessible(true);
-                        f.set(obj, value);
-                    }
-                }
+            if (rs.next()) {
+                Map<String, Object> map = getMapFromResultSet(rs);
+                obj = mapToObject(clazz, map);
             }
         } catch (IllegalArgumentException
                 | IllegalAccessException
@@ -114,7 +102,7 @@ public class DbUtil {
                 | SecurityException
                 | InstantiationException e) {
             e.printStackTrace();
-        } finally{
+        } finally {
             close(rs, ps, conn);
         }
         return obj;
@@ -122,14 +110,15 @@ public class DbUtil {
 
     /**
      * 查询一条
-     * @param t
+     *
+     * @param clazz
      * @param sql
      * @param args
      * @return T
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static <T> T queryOne(Class<T> t, String sql, Object... args) throws SQLException {
+    public static <T> T queryOne(Class<T> clazz, String sql, Object... args) throws SQLException {
         Connection conn = null;
         T obj = null;
         PreparedStatement ps = null;
@@ -141,26 +130,9 @@ public class DbUtil {
                 ps.setObject(i + 1, args[i]);
             }
             rs = ps.executeQuery();
-            ResultSetMetaData rsmd = rs.getMetaData();
-            Map<String,Object> map = new HashMap<>();
-
-            while(rs.next()){
-                map.clear();
-                int columnCount = rsmd.getColumnCount();
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = rsmd.getColumnName(i);
-                    map.put(columnName, rs.getObject(columnName));
-                }
-                if(!map.isEmpty()){
-                    Set<String> columnNames = map.keySet();
-                    obj = t.newInstance();
-                    for(String column : columnNames){
-                        Object value = map.get(column);
-                        Field f  = t.getDeclaredField(CamelUnderlineUtil.underlineToCamel(column));
-                        f.setAccessible(true);
-                        f.set(obj, value);
-                    }
-                }
+            if (rs.next()) {
+                Map<String, Object> map = getMapFromResultSet(rs);
+                obj = mapToObject(clazz, map);
             }
         } catch (IllegalArgumentException
                 | IllegalAccessException
@@ -168,7 +140,7 @@ public class DbUtil {
                 | SecurityException
                 | InstantiationException e) {
             e.printStackTrace();
-        } finally{
+        } finally {
             close(rs, ps, conn);
         }
         return obj;
@@ -176,17 +148,17 @@ public class DbUtil {
 
     /**
      * 查询全部
-     * @param t
+     *
+     * @param clazz
      * @param sql
      * @param objs
      * @return java.util.List<T>
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static <T> List<T> queryAll(Class<T> t, String sql, Object... objs) throws SQLException {
+    public static <T> List<T> queryAll(Class<T> clazz, String sql, Object... objs) throws SQLException {
         List<T> list = new ArrayList<>();
         Connection conn = null;
-        T obj = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         try {
@@ -196,25 +168,11 @@ public class DbUtil {
                 ps.setObject(i + 1, objs[i]);
             }
             rs = ps.executeQuery();
-            ResultSetMetaData rsmd = rs.getMetaData();
-            Map<String,Object> map = new HashMap<>();
 
-            while(rs.next()){
-                map.clear();
-                int columnCount = rsmd.getColumnCount();
-                for (int i = 1; i <= columnCount; i++) {
-                    String columnName = rsmd.getColumnName(i);
-                    map.put(columnName, rs.getObject(columnName));
-                }
-                if(!map.isEmpty()){
-                    Set<String> columnNames = map.keySet();
-                    obj = t.newInstance();
-                    for(String column : columnNames){
-                        Object value = map.get(column);
-                        Field f  = t.getDeclaredField(CamelUnderlineUtil.underlineToCamel(column));
-                        f.setAccessible(true);
-                        f.set(obj, value);
-                    }
+            while (rs.next()) {
+                Map<String, Object> map = getMapFromResultSet(rs);
+                T obj = mapToObject(clazz, map);
+                if (obj != null) {
                     list.add(obj);
                 }
             }
@@ -224,14 +182,60 @@ public class DbUtil {
                 | SecurityException
                 | InstantiationException e) {
             e.printStackTrace();
-        } finally{
+        } finally {
             close(rs, ps, conn);
         }
         return list;
     }
 
     /**
+     * resultSet转map
+     *
+     * @param resultSet
+     * @return java.util.Map<java.lang.String, java.lang.Object>
+     * @author XanderYe
+     * @date 2021/2/1
+     */
+    private static Map<String, Object> getMapFromResultSet(ResultSet resultSet) throws SQLException {
+        Map<String, Object> map = new HashMap<>(16);
+        ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+        int columnCount = resultSetMetaData.getColumnCount();
+        for (int i = 0; i < columnCount; i++) {
+            String columnName = resultSetMetaData.getColumnName(i + 1);
+            map.put(columnName, resultSet.getObject(columnName));
+        }
+        return map;
+    }
+
+    /**
+     * map转对象
+     * @param clazz
+     * @param map
+     * @return T
+     * @author XanderYe
+     * @date 2021/2/1
+     */
+    private static <T> T mapToObject(Class<T> clazz, Map<String, Object> map) throws IllegalAccessException, InstantiationException, NoSuchFieldException {
+        T object = null;
+        if (!map.isEmpty()) {
+            Set<String> columnNames = map.keySet();
+            object = clazz.newInstance();
+            for (String column : columnNames) {
+                Object value = map.get(column);
+                String camel = underlineToCamel(column);
+                if (camel != null) {
+                    Field f = clazz.getDeclaredField(camel);
+                    f.setAccessible(true);
+                    f.set(object, value);
+                }
+            }
+        }
+        return object;
+    }
+
+    /**
      * 关闭资源
+     *
      * @param rs
      * @param ps
      * @param conn
@@ -239,19 +243,73 @@ public class DbUtil {
      * @author XanderYe
      * @date 2020/9/1
      */
-    public static void close(ResultSet rs, PreparedStatement ps, Connection conn){
+    public static void close(ResultSet rs, PreparedStatement ps, Connection conn) {
         try {
-            if(rs != null){
+            if (rs != null) {
                 rs.close();
             }
-            if(ps != null){
+            if (ps != null) {
                 ps.close();
             }
-            if(conn != null){
+            if (conn != null) {
                 conn.close();
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 驼峰转下划线
+     *
+     * @param param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2020/9/1
+     */
+    public static String camelToUnderline(String param) {
+        if (param == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        int len = param.length();
+        for (int i = 0; i < len; i++) {
+            char c = param.charAt(i);
+            if (Character.isUpperCase(c)) {
+                sb.append(UNDERLINE);
+                sb.append(Character.toLowerCase(c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 下划线转驼峰
+     *
+     * @param param
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2020/9/1
+     */
+    public static String underlineToCamel(String param) {
+        if (param == null) {
+            return null;
+        }
+        param = param.toLowerCase();
+        StringBuilder sb = new StringBuilder();
+        int len = param.length();
+        for (int i = 0; i < len; i++) {
+            char c = param.charAt(i);
+            if (c == UNDERLINE) {
+                if (++i < len) {
+                    sb.append(Character.toUpperCase(param.charAt(i)));
+                }
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }

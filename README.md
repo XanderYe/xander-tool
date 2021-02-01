@@ -24,10 +24,6 @@ qq爬虫用到的几个qq加密算法的java版本
 
 封装jdbc操作数据库方法
 
-## [CamelUnderlineUtil](src/main/java/cn/xanderye/util/CamelUnderlineUtil.java)
-
-驼峰与下划线转换工具类
-
 ## [StrokeUtil](src/main/java/cn/xanderye/util/StrokeUtil.java)
 
 汉字按笔划排序工具类
