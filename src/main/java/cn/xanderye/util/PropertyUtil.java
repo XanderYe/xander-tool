@@ -102,8 +102,6 @@ public class PropertyUtil {
      */
     public static synchronized void save(String key, String value, String comment) {
         if (properties != null) {
-            FileOutputStream fos = null;
-            BufferedWriter bw = null;
             if (properties.getProperty(key) == null) {
                 append(key, value, comment);
             } else {
