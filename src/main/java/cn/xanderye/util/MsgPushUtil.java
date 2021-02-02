@@ -1,7 +1,6 @@
 package cn.xanderye.util;
 
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -11,6 +10,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +28,10 @@ public class MsgPushUtil {
     private static final String DB_BOT_URL = "https://oapi.dingtalk.com/robot/send?access_token=${token}";
 
     private static final String BARK_URL = "https://api.day.app/${deviceId}/${content}";
+
+    private static final String QMSG_PRIVATE_URL = "https://qmsg.zendee.cn/send/${key}";
+
+    private static final String QMSG_GROUP_URL = "https://qmsg.zendee.cn/group/${key}";
 
     /**
      * Server酱推送
@@ -88,7 +92,7 @@ public class MsgPushUtil {
     /**
      * ios bark推送
      *
-     * @see <a href="https://apps.apple.com/cn/app/bark-customed-notifications/id1403753865">Bark</a>"
+     * @see <a href="https://apps.apple.com/cn/app/bark-customed-notifications/id1403753865">Bark</a>
      * @param deviceId
      * @param content
      * @return java.lang.String
@@ -111,6 +115,27 @@ public class MsgPushUtil {
     }
 
     /**
+     * QMsg酱推送
+     *
+     * @see <a href="https://qmsg.zendee.cn/api.html">Qmsg酱接口文档</a>
+     * @param key
+     * @param msg 消息 (表情：@face=表情ID@，群@用法：@个人@at=群员QQ号@、@全体@at=-1@)
+     * @param qq qq号或群号，逗号隔开
+     * @param isGroup 是否是群组
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/2/2
+     */
+    public static String qMsgPush(String key, String msg, String qq, boolean isGroup) throws IOException {
+        String url = isGroup ? QMSG_GROUP_URL : QMSG_PRIVATE_URL;
+        url = url.replace("${key}", key);
+        Map<String, Object> params = new HashMap<>(16);
+        params.put("msg", msg);
+        params.put("qq", qq);
+        return HttpUtil.doPost(url, params).getResponse();
+    }
+
+    /**
      * 钉钉机器人签名
      *
      * @param timestamp
@@ -124,6 +149,6 @@ public class MsgPushUtil {
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
         byte[] signData = mac.doFinal(stringToSign.getBytes(StandardCharsets.UTF_8));
-        return URLEncoder.encode(new String(Base64.encodeBase64(signData)), "UTF-8");
+        return URLEncoder.encode(new String(Base64.getEncoder().encode(signData)), "UTF-8");
     }
 }
