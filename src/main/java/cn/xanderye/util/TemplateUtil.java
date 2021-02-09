@@ -30,8 +30,11 @@ public class TemplateUtil {
      * @date 2021/2/9
      */
     public static void generateFromResources(Map<String, Object> root, String dictName, String ftlName, String targetPath, String targetName) throws IOException, TemplateException {
-        File file = new File(targetPath + "/" + targetName);
-        try (FileWriter fw = new FileWriter(file);
+        File parentFile = new File(targetPath);
+        if (!parentFile.exists()) {
+            parentFile.mkdirs();
+        }
+        try (FileWriter fw = new FileWriter(new File(targetPath + "/" + targetName));
              BufferedWriter bw = new BufferedWriter(fw)) {
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
             cfg.setDefaultEncoding("UTF-8");
@@ -55,8 +58,11 @@ public class TemplateUtil {
      * @date 2021/2/9
      */
     public static void generateFromFile(Map<String, Object> root, String sourcePath, String ftlName, String targetPath, String targetName) throws IOException, TemplateException {
-        File file = new File(targetPath + "/" + targetName);
-        try (FileWriter fw = new FileWriter(file);
+        File parentFile = new File(targetPath);
+        if (!parentFile.exists()) {
+            parentFile.mkdirs();
+        }
+        try (FileWriter fw = new FileWriter(new File(targetPath + "/" + targetName));
              BufferedWriter bw = new BufferedWriter(fw)) {
             Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
             cfg.setDefaultEncoding("UTF-8");
