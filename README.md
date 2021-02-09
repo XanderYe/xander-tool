@@ -51,3 +51,7 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 ## [LotteryUtil](src/main/java/cn/xanderye/util/LotteryUtil.java)
 
 抽奖工具类 需实例化，支持自定义奖品，按概率抽奖或按奖品总数抽奖
+
+## [TemplateUtil](src/main/java/cn/xanderye/util/TemplateUtil.java)
+
+模板工具类 基于Freemarker，可根据模板导出文件
