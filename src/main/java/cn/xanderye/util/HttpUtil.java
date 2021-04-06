@@ -187,7 +187,7 @@ public class HttpUtil {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = HTTP_CLIENT.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
+            if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
                     String res = EntityUtils.toString(resultEntity, CHARSET);
@@ -503,7 +503,9 @@ public class HttpUtil {
                     if (eqIndex > -1) {
                         String k = parameter.substring(0, eqIndex).trim();
                         String v = parameter.substring(eqIndex + 1).trim();
-                        cookieMap.put(k, v);
+                        if (null != v && !"".equals(v)) {
+                            cookieMap.put(k, v);
+                        }
                     }
                 }
             }
