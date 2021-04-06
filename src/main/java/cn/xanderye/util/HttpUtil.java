@@ -42,6 +42,11 @@ public class HttpUtil {
     private static final boolean USE_PROXY = false;
 
     /**
+     * 是否自动重定向
+     */
+    private static final boolean REDIRECT = true;
+
+    /**
      * socket连接超时
      */
     private static final int DEFAULT_SOCKET_TIMEOUT = 15000;
@@ -72,6 +77,7 @@ public class HttpUtil {
                 .setConnectTimeout(DEFAULT_CONNECT_TIMEOUT)
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
                 .setCookieSpec(CookieSpecs.STANDARD)
+                .setRedirectsEnabled(REDIRECT)
                 .build();
         HTTP_CLIENT = custom().setDefaultRequestConfig(config).build();
     }
@@ -341,7 +347,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static byte[] doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+    public static ResEntity doDownload(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
         url = baseUrl + url;
         // 拼接参数
         if (params != null && !params.isEmpty()) {
@@ -375,7 +381,12 @@ public class HttpUtil {
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
                 if (resultEntity != null) {
-                    return EntityUtils.toByteArray(resultEntity);
+                    byte[] bytes = EntityUtils.toByteArray(resultEntity);
+                    String cookieString = getCookieString(response);
+                    ResEntity resEntity = new ResEntity();
+                    resEntity.setBytes(bytes);
+                    resEntity.setCookies(formatCookies(cookieString));
+                    return resEntity;
                 }
             } else {
                 throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
@@ -392,7 +403,7 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return null;
+        return new ResEntity();
     }
 
     /**
@@ -548,9 +559,19 @@ public class HttpUtil {
 
     public static class ResEntity {
 
+        private byte[] bytes;
+
         private String response;
 
         private Map<String, Object> cookies;
+
+        public byte[] getBytes() {
+            return bytes;
+        }
+
+        public void setBytes(byte[] bytes) {
+            this.bytes = bytes;
+        }
 
         public String getResponse() {
             return response;
