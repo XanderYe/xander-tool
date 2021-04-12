@@ -76,7 +76,7 @@ public class HttpUtil {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(DEFAULT_CONNECT_TIMEOUT)
                 .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
-                .setCookieSpec(CookieSpecs.STANDARD)
+                .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                 .setRedirectsEnabled(REDIRECT)
                 .build();
         HTTP_CLIENT = custom().setDefaultRequestConfig(config).build();
