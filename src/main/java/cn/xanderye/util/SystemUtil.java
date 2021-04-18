@@ -1,6 +1,7 @@
 package cn.xanderye.util;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -71,6 +72,17 @@ public class SystemUtil {
      */
     public static String execStr(String...cmds) {
         return execStr(getCharset(), cmds);
+    }
+
+    /**
+     * 异步掉用命令
+     * @param cmdStr
+     * @return void
+     * @author XanderYe
+     * @date 2021/4/18
+     */
+    public static void execStrAsync(String cmdStr) throws IOException {
+        Runtime.getRuntime().exec(cmdStr);
     }
 
     /**
