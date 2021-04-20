@@ -16,9 +16,9 @@
 
 qq爬虫用到的几个qq加密算法的java版本
 
-## [SocketUtil](src/main/java/cn/xanderye/util/SocketUtil.java)
+## [IoUtil](src/main/java/cn/xanderye/util/IoUtil.java)
 
-读取流的两个方法，保证不丢包、不沾包的前提下提高速度
+流操作工具类
 
 ## [DbUtil](src/main/java/cn/xanderye/util/DbUtil.java)
 

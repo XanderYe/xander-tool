@@ -76,7 +76,7 @@ public class CodecUtil {
      * @date 2021/1/29
      */
     public static String base64Decode(String base64Str) throws IOException {
-        return new String(base64DecodeToByteArray(base64Str), StandardCharsets.UTF_8);
+        return base64Decode(base64Str, StandardCharsets.UTF_8);
     }
 
     /**
