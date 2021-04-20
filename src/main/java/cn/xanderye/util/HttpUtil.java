@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -342,8 +343,9 @@ public class HttpUtil {
      *
      * @param url
      * @param headers
+     * @param cookies
      * @param params
-     * @return byte[]
+     * @return cn.xanderye.util.HttpUtil.ResEntity
      * @author XanderYe
      * @date 2020/2/4
      */
@@ -385,6 +387,62 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setBytes(bytes);
+                    resEntity.setCookies(formatCookies(cookieString));
+                    return resEntity;
+                }
+            } else {
+                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
+            }
+        } finally {
+            try {
+                if (resultEntity != null) {
+                    EntityUtils.consume(resultEntity);
+                }
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return new ResEntity();
+    }
+
+    /**
+     * post上传基础方法，注意Content-Type
+     *
+     * @param url
+     * @param headers
+     * @param cookies
+     * @param bytes
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author XanderYe
+     * @date 2020/2/4
+     */
+    public static ResEntity doUpload(String url, Map<String, Object> headers, Map<String, Object> cookies, byte[] bytes) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + url);
+        // 拼接参数
+        if (bytes != null && bytes.length > 0) {
+            ByteArrayEntity requestEntity = new ByteArrayEntity(bytes);
+            httpPost.setEntity(requestEntity);
+        }
+        // 添加headers
+        addHeaders(httpPost, headers);
+        // 添加cookies
+        addCookies(httpPost, cookies);
+        CloseableHttpResponse response = null;
+        HttpEntity resultEntity = null;
+        try {
+            HttpClientContext httpClientContext = new HttpClientContext();
+            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
+            int statusCode = response.getStatusLine().getStatusCode();
+            if (statusCode == HttpStatus.SC_OK) {
+                resultEntity = response.getEntity();
+                if (resultEntity != null) {
+                    String res = EntityUtils.toString(resultEntity, CHARSET);
+                    String cookieString = getCookieString(response);
+                    ResEntity resEntity = new ResEntity();
+                    resEntity.setResponse(res);
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
