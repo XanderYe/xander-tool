@@ -55,3 +55,7 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 ## [TemplateUtil](src/main/java/cn/xanderye/util/TemplateUtil.java)
 
 模板工具类 基于Freemarker，可根据模板导出文件
+
+## [EmailUtil](src/main/java/cn/xanderye/util/EmailUtil.java)
+
+邮件工具类，发送邮件
