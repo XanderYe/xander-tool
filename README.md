@@ -59,3 +59,7 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 ## [EmailUtil](src/main/java/cn/xanderye/util/EmailUtil.java)
 
 邮件工具类，发送邮件
+
+## [WechatUtil](src/main/java/cn/xanderye/util/WechatUtil.java)
+
+微信工具类，解密图片
