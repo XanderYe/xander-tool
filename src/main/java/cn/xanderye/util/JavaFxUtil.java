@@ -1,10 +1,7 @@
 package cn.xanderye.util;
 
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
-import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 
 import java.util.Optional;
 
@@ -16,6 +13,8 @@ import java.util.Optional;
 public class JavaFxUtil {
 
     private static TextArea logArea = null;
+
+    private static final String NUMBER_REGEX = "\\d*";
 
     /**
      * 日志方法首先需要在Controller的initialize中执行
@@ -108,5 +107,36 @@ public class JavaFxUtil {
         alert.setHeaderText(header);
         alert.setContentText(message);
         alert.show();
+    }
+
+    /**
+     * 文本框只允许输入数字
+     * @param textField
+     * @param min
+     * @param max
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/1
+     */
+    public static void checkNumberListener(TextField textField, Long min, Long max) {
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            long newNum;
+            if (!newValue.matches(NUMBER_REGEX) || "".equals(newValue)) {
+                String number = newValue.replaceAll("[^\\d]", "");
+                newNum = "".equals(number) ? 0 : Long.parseLong(number);
+            } else {
+                try {
+                    newNum = Long.parseLong(newValue);
+                } catch (NumberFormatException e) {
+                    newNum = Long.MAX_VALUE;
+                }
+                if (min != null) {
+                    newNum = Math.max(newNum, min);
+                }
+                long finalMax = max == null ? Long.MAX_VALUE : max;
+                newNum = Math.min(newNum, finalMax);
+            }
+            textField.setText(String.valueOf(newNum));
+        });
     }
 }
