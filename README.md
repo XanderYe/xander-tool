@@ -16,6 +16,10 @@
 
 qq爬虫用到的几个qq加密算法的java版本
 
+## [WechatUtil](src/main/java/cn/xanderye/util/WechatUtil.java)
+
+微信工具类，解密图片
+
 ## [IoUtil](src/main/java/cn/xanderye/util/IoUtil.java)
 
 流操作工具类
@@ -59,7 +63,3 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 ## [EmailUtil](src/main/java/cn/xanderye/util/EmailUtil.java)
 
 邮件工具类，发送邮件
-
-## [WechatUtil](src/main/java/cn/xanderye/util/WechatUtil.java)
-
-微信工具类，解密图片

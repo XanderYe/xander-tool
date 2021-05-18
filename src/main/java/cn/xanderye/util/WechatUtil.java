@@ -9,11 +9,11 @@ import java.io.*;
  */
 public class WechatUtil {
     /**
-     * JPG开头二进制
+     * JPG开头二进制 FFD8
      */
     private static final byte[] JPG_BYTES = new byte[]{-1, -40};
     /**
-     * PNG开头二进制
+     * PNG开头二进制 8950
      */
     private static final byte[] PNG_BYTES = new byte[]{-119, 80};
 
