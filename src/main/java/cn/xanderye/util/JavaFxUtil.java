@@ -35,12 +35,11 @@ public class JavaFxUtil {
      * @date 2020/9/4
      */
     public static void log(String msg) {
+        System.out.print(msg);
         msg = msg.trim() + "\r\n";
         if (logArea != null) {
             String finalMsg = msg;
             Platform.runLater(() -> logArea.appendText(finalMsg));
-        } else {
-            System.out.print(msg);
         }
     }
 
