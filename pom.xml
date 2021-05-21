@@ -7,6 +7,7 @@
   <groupId>cn.xanderye</groupId>
   <artifactId>xander-tool</artifactId>
   <version>1.1</version>
+  <description>A java tool project.</description>
 
   <name>xander-tool</name>
   <url>https://www.xanderye.cn</url>
