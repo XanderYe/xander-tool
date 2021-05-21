@@ -9,8 +9,7 @@
   <version>1.1</version>
 
   <name>xander-tool</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
+  <url>https://www.xanderye.cn</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -72,16 +71,88 @@
         </excludes>
       </resource>
     </resources>
+
+    <plugins>
+      <!-- doc plugin,Maven API文档生成插件 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.1.0</version>
+        <configuration>
+          <doclint>none</doclint>
+        </configuration>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar-no-fork</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>1.6</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <url>https://www.xanderye.cn</url>
+    <connection>scm:git:https://github.com/XanderYe/xander-tool.git</connection>
+    <developerConnection>scm:https://github.com/XanderYe/xander-tool.git</developerConnection>
+  </scm>
+
+  <developers>
+    <developer>
+      <name>XanderYe</name>
+      <email>XanderYe@outlook.com</email>
+      <organization>XanderYe</organization>
+      <organizationUrl>https://www.xanderye.cn</organizationUrl>
+    </developer>
+  </developers>
+
   <distributionManagement>
-    <repository>
-      <id>rdc-releases</id>
-      <url>https://repo.rdc.aliyun.com/repository/122904-release-12oEjS/</url>
-    </repository>
     <snapshotRepository>
-      <id>rdc-snapshots</id>
-      <url>https://repo.rdc.aliyun.com/repository/122904-snapshot-ZoEvfQ/</url>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
     </snapshotRepository>
+    <repository>
+      <id>ossrh</id>
+      <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
   </distributionManagement>
 </project>
