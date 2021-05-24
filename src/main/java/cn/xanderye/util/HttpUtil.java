@@ -1,6 +1,7 @@
 package cn.xanderye.util;
 
 import org.apache.http.*;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -40,22 +41,24 @@ public class HttpUtil {
     /**
      * 是否使用代理
      */
-    private static final boolean USE_PROXY = false;
+    private static boolean useProxy = false;
+    private static String defaultProxyIp = "127.0.0.1";
+    private static int defaultProxyPort = 8888;
 
     /**
      * 是否自动重定向
      */
-    private static final boolean REDIRECT = true;
+    private static boolean redirect = true;
 
     /**
      * socket连接超时
      */
-    private static final int DEFAULT_SOCKET_TIMEOUT = 15000;
+    private static int defaultSocketTimeout = 15000;
 
     /**
      * 请求超时
      */
-    private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
+    private static int defaultConnectTimeout = 30000;
 
     /**
      * 默认编码
@@ -70,17 +73,28 @@ public class HttpUtil {
     /**
      * HttpClient对象
      */
-    private static final CloseableHttpClient HTTP_CLIENT;
+    private static CloseableHttpClient httpClient;
 
     // 静态代码块初始化配置
     static {
+        initHttpClient();
+    }
+
+    /**
+     * 初始化配置
+     * @param
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/24
+     */
+    private static void initHttpClient() {
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(DEFAULT_CONNECT_TIMEOUT)
-                .setSocketTimeout(DEFAULT_SOCKET_TIMEOUT)
+                .setConnectTimeout(defaultConnectTimeout)
+                .setSocketTimeout(defaultSocketTimeout)
                 .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
-                .setRedirectsEnabled(REDIRECT)
+                .setRedirectsEnabled(redirect)
                 .build();
-        HTTP_CLIENT = custom().setDefaultRequestConfig(config).build();
+        httpClient = custom().setDefaultRequestConfig(config).build();
     }
 
     /**
@@ -94,9 +108,9 @@ public class HttpUtil {
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
         // 忽略证书
         httpClientBuilder.setSSLSocketFactory(ignoreCertificates());
-        if (USE_PROXY) {
+        if (useProxy) {
             // 使用代理
-            httpClientBuilder.setProxy(new HttpHost("127.0.0.1", 8888));
+            httpClientBuilder.setProxy(new HttpHost(defaultProxyIp, defaultProxyPort));
         }
         return httpClientBuilder;
     }
@@ -186,7 +200,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpGet, httpClientContext);
+            response = httpClient.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
                 resultEntity = response.getEntity();
@@ -251,7 +265,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
+            response = httpClient.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -308,7 +322,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
+            response = httpClient.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -378,7 +392,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpGet, httpClientContext);
+            response = httpClient.execute(httpGet, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -434,7 +448,7 @@ public class HttpUtil {
         HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
-            response = HTTP_CLIENT.execute(httpPost, httpClientContext);
+            response = httpClient.execute(httpPost, httpClientContext);
             int statusCode = response.getStatusLine().getStatusCode();
             if (statusCode == HttpStatus.SC_OK) {
                 resultEntity = response.getEntity();
@@ -615,6 +629,63 @@ public class HttpUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * 设置重定向
+     * @param redirect
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/24
+     */
+    public static void setRedirect(boolean redirect) {
+        HttpUtil.redirect = redirect;
+        initHttpClient();
+    }
+
+    /**
+     * 配置代理
+     * @param useProxy
+     * @param proxyIp
+     * @param proxyPort
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/24
+     */
+    public static void setProxy(boolean useProxy, String proxyIp, Integer proxyPort) {
+        HttpUtil.useProxy = useProxy;
+        if (null != proxyIp && !"".equals(proxyIp)) {
+            HttpUtil.defaultProxyIp = proxyIp;
+        }
+        if (null != proxyPort) {
+            HttpUtil.defaultProxyPort = proxyPort;
+        }
+        initHttpClient();
+    }
+
+    /**
+     * 设置超时
+     * @param socketTimeout
+     * @param connectTimeout
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/24
+     */
+    public static void setTimeout(int socketTimeout, int connectTimeout) {
+        defaultSocketTimeout = socketTimeout;
+        defaultConnectTimeout = connectTimeout;
+        initHttpClient();
+    }
+
+    /**
+     * 直接设置自定义httpClient
+     * @param customHttpClient
+     * @return void
+     * @author XanderYe
+     * @date 2021/5/24
+     */
+    public static void setHttpClient(CloseableHttpClient customHttpClient) {
+        httpClient = customHttpClient;
     }
 
     public static class ResEntity {
