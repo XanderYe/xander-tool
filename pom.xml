@@ -66,6 +66,7 @@
         <directory>src/main/resources</directory>
         <includes>
           <include>*.json</include>
+          <include>*.template</include>
         </includes>
         <excludes>
           <exclude>**/js/</exclude>
