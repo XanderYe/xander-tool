@@ -209,6 +209,7 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setResponse(res);
+                    resEntity.setHeaders(getHeaders(response));
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
@@ -274,6 +275,7 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setResponse(res);
+                    resEntity.setHeaders(getHeaders(response));
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
@@ -331,6 +333,7 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setResponse(res);
+                    resEntity.setHeaders(getHeaders(response));
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
@@ -401,6 +404,7 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setBytes(bytes);
+                    resEntity.setHeaders(getHeaders(response));
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
@@ -457,6 +461,7 @@ public class HttpUtil {
                     String cookieString = getCookieString(response);
                     ResEntity resEntity = new ResEntity();
                     resEntity.setResponse(res);
+                    resEntity.setHeaders(getHeaders(response));
                     resEntity.setCookies(formatCookies(cookieString));
                     return resEntity;
                 }
@@ -525,9 +530,25 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2021/1/26
      */
-    public static String getCookieString(CloseableHttpResponse response) {
+    private static String getCookieString(CloseableHttpResponse response) {
         Header[] headers = response.getHeaders("Set-Cookie");
         return Arrays.stream(headers).map(Header::getValue).collect(Collectors.joining("; "));
+    }
+
+    /**
+     * 获取请求头
+     * @param response
+     * @return java.util.Map<java.lang.String,java.lang.Object>
+     * @author XanderYe
+     * @date 2021/6/21
+     */
+    private static Map<String, Object> getHeaders(CloseableHttpResponse response) {
+        Header[] headers = response.getAllHeaders();
+        Map<String, Object> headersMap = new HashMap<>();
+        for (Header header : headers) {
+            headersMap.put(header.getName(), header.getValue());
+        }
+        return headersMap;
     }
 
     /**
@@ -694,6 +715,8 @@ public class HttpUtil {
 
         private String response;
 
+        private Map<String, Object> headers;
+
         private Map<String, Object> cookies;
 
         public byte[] getBytes() {
@@ -712,6 +735,14 @@ public class HttpUtil {
             this.response = response;
         }
 
+        public Map<String, Object> getHeaders() {
+            return headers;
+        }
+
+        public void setHeaders(Map<String, Object> headers) {
+            this.headers = headers;
+        }
+
         public Map<String, Object> getCookies() {
             return cookies;
         }
@@ -723,7 +754,9 @@ public class HttpUtil {
         @Override
         public String toString() {
             return "ResEntity{" +
-                    "response='" + response + '\'' +
+                    "bytes=" + Arrays.toString(bytes) +
+                    ", response='" + response + '\'' +
+                    ", headers=" + headers +
                     ", cookies=" + cookies +
                     '}';
         }
