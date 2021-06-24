@@ -1,7 +1,7 @@
 package cn.xanderye.util;
 
 import org.apache.http.*;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -10,6 +10,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
@@ -21,7 +22,11 @@ import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -41,7 +46,7 @@ public class HttpUtil {
     /**
      * 是否使用代理
      */
-    private static boolean useProxy = false;
+    private static boolean enableProxy = false;
     private static String defaultProxyIp = "127.0.0.1";
     private static int defaultProxyPort = 8888;
 
@@ -59,6 +64,15 @@ public class HttpUtil {
      * 请求超时
      */
     private static int defaultConnectTimeout = 30000;
+
+    /**
+     * 是否重试
+     */
+    private static boolean enableRetry = false;
+    /**
+     * 重试次数
+     */
+    private static int defaultRetryCount = 3;
 
     /**
      * 默认编码
@@ -108,18 +122,15 @@ public class HttpUtil {
         HttpClientBuilder httpClientBuilder = HttpClients.custom();
         // 忽略证书
         httpClientBuilder.setSSLSocketFactory(ignoreCertificates());
-        if (useProxy) {
+        if (enableProxy) {
             // 使用代理
             httpClientBuilder.setProxy(new HttpHost(defaultProxyIp, defaultProxyPort));
         }
-        return httpClientBuilder;
-    }
-
-    public static void setBaseUrl(String base) {
-        baseUrl = base;
-        if ('/' != base.charAt(base.length() - 1)) {
-            baseUrl += "/";
+        if (enableRetry) {
+            // 使用重试机制
+            httpClientBuilder.setRetryHandler(retryHandler());
         }
+        return httpClientBuilder;
     }
 
     /**
@@ -596,7 +607,7 @@ public class HttpUtil {
                     if (eqIndex > -1) {
                         String k = parameter.substring(0, eqIndex).trim();
                         String v = parameter.substring(eqIndex + 1).trim();
-                        if (null != v && !"".equals(v)) {
+                        if (!"".equals(v)) {
                             cookieMap.put(k, v);
                         }
                     }
@@ -653,6 +664,51 @@ public class HttpUtil {
     }
 
     /**
+     * 重试配置
+     * @return
+     */
+    private static HttpRequestRetryHandler retryHandler() {
+        return (e, retryTimes, httpContext) -> {
+            if (retryTimes > defaultRetryCount) {
+                // 重试次数大于3次
+                return false;
+            }
+            HttpClientContext clientContext = HttpClientContext.adapt(httpContext);
+            HttpRequest request = clientContext.getRequest();
+            boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
+            if (idempotent) {
+                // 如果请求被认为是幂等的，则重试
+                return true;
+            }
+            if (e instanceof NoHttpResponseException) {
+                // NoHttpResponseException异常重试
+                return true;
+            }
+            if (e instanceof ConnectTimeoutException) {
+                // 连接超时重试
+                return true;
+            }
+            if (e instanceof SocketTimeoutException) {
+                // 响应超时
+                return false;
+            }
+            if (e instanceof InterruptedIOException) {
+                // 超时
+                return false;
+            }
+            if (e instanceof UnknownHostException) {
+                // 未知主机
+                return false;
+            }
+            if (e instanceof SSLException) {
+                // SSL异常
+                return false;
+            }
+            return false;
+        };
+    }
+
+    /**
      * 设置重定向
      * @param redirect
      * @return void
@@ -674,7 +730,7 @@ public class HttpUtil {
      * @date 2021/5/24
      */
     public static void setProxy(boolean useProxy, String proxyIp, Integer proxyPort) {
-        HttpUtil.useProxy = useProxy;
+        HttpUtil.enableProxy = useProxy;
         if (null != proxyIp && !"".equals(proxyIp)) {
             HttpUtil.defaultProxyIp = proxyIp;
         }
@@ -699,6 +755,21 @@ public class HttpUtil {
     }
 
     /**
+     * 设置重试机制
+     * @param retryCount
+     * @return void
+     * @author XanderYe
+     * @date 2021/6/24
+     */
+    public static void setRetry(int retryCount) {
+        if (retryCount > 0) {
+            defaultRetryCount = retryCount;
+        }
+        enableRetry = true;
+        initHttpClient();
+    }
+
+    /**
      * 直接设置自定义httpClient
      * @param customHttpClient
      * @return void
@@ -707,6 +778,13 @@ public class HttpUtil {
      */
     public static void setHttpClient(CloseableHttpClient customHttpClient) {
         httpClient = customHttpClient;
+    }
+
+    public static void setBaseUrl(String base) {
+        baseUrl = base;
+        if ('/' != base.charAt(base.length() - 1)) {
+            baseUrl += "/";
+        }
     }
 
     public static class ResEntity {
