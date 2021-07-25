@@ -26,6 +26,9 @@ public class IdCardUtil {
      * @date 2020/2/4
      */
     private static String calcCheckCode(String idNum) {
+        if (idNum == null || idNum.length() != ID_LENGTH - 1) {
+            throw new RuntimeException("参数错误");
+        }
         //权数数组
         int[] weightArray = {7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2};
         String vCode = "10X98765432";
