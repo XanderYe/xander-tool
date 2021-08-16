@@ -148,4 +148,22 @@ public class FileUtil {
         }
         return charset;
     }
+
+    /**
+     * 根据文件名获取文件格式
+     * @param name
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/8/16
+     */
+    public static String getFileExt(String name) {
+        if (name == null) {
+            return null;
+        }
+        int dotIndex = name.lastIndexOf(".");
+        if (dotIndex > -1) {
+            return name.substring(dotIndex + 1);
+        }
+        return null;
+    }
 }
