@@ -1,7 +1,7 @@
 ;(function(){
   const util = {
     // date对象格式化成字符串
-    formatDate: function (format, date) {
+    formatDate: function (date, format) {
       if (!date) {
         date = new Date();
       }
