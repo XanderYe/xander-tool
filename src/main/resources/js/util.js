@@ -1,7 +1,7 @@
 ;(function(){
   const util = {
     // date对象格式化成字符串
-    dateFormat: function (format, date) {
+    formatDate: function (format, date) {
       if (!date) {
         date = new Date();
       }
@@ -31,7 +31,7 @@
     },
 
     // 时间字符串转date对象
-    dateParse: function (dateString) {
+    parseDate: function (dateString) {
       return new Date(dateString.replace(/-/,"/"));
     },
 
