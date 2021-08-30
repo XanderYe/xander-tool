@@ -1,5 +1,6 @@
 package cn.xanderye.util;
 
+import lombok.Data;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
@@ -30,12 +31,11 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * http请求工具
+ * http请求工具 返回对象包括状态码、响应头、cookie和响应体，自行根据状态码判断
  *
  * @author XanderYe
  * @date 2020/2/4
@@ -53,7 +53,7 @@ public class HttpUtil {
     /**
      * 是否自动重定向
      */
-    private static boolean redirect = true;
+    private static boolean redirect = false;
 
     /**
      * socket连接超时
@@ -208,30 +208,12 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpGet, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK || statusCode == HttpStatus.SC_MOVED_TEMPORARILY) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    String res = EntityUtils.toString(resultEntity, CHARSET);
-                    String cookieString = getCookieString(response);
-                    ResEntity resEntity = new ResEntity();
-                    resEntity.setResponse(res);
-                    resEntity.setHeaders(getHeaders(response));
-                    resEntity.setCookies(formatCookies(cookieString));
-                    return resEntity;
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
+            return getResEntity(response, false);
         } finally {
             try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
                 if (response != null) {
                     response.close();
                 }
@@ -239,7 +221,6 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return new ResEntity();
     }
 
     /**
@@ -274,30 +255,12 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    String res = EntityUtils.toString(resultEntity, CHARSET);
-                    String cookieString = getCookieString(response);
-                    ResEntity resEntity = new ResEntity();
-                    resEntity.setResponse(res);
-                    resEntity.setHeaders(getHeaders(response));
-                    resEntity.setCookies(formatCookies(cookieString));
-                    return resEntity;
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
+            return getResEntity(response, false);
         } finally {
             try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
                 if (response != null) {
                     response.close();
                 }
@@ -305,7 +268,6 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return new ResEntity();
     }
 
     /**
@@ -336,21 +298,7 @@ public class HttpUtil {
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    String res = EntityUtils.toString(resultEntity, CHARSET);
-                    String cookieString = getCookieString(response);
-                    ResEntity resEntity = new ResEntity();
-                    resEntity.setResponse(res);
-                    resEntity.setHeaders(getHeaders(response));
-                    resEntity.setCookies(formatCookies(cookieString));
-                    return resEntity;
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
+            return getResEntity(response, false);
         } finally {
             try {
                 if (resultEntity != null) {
@@ -363,7 +311,6 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return new ResEntity();
     }
 
     /**
@@ -403,30 +350,12 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpGet, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    byte[] bytes = EntityUtils.toByteArray(resultEntity);
-                    String cookieString = getCookieString(response);
-                    ResEntity resEntity = new ResEntity();
-                    resEntity.setBytes(bytes);
-                    resEntity.setHeaders(getHeaders(response));
-                    resEntity.setCookies(formatCookies(cookieString));
-                    return resEntity;
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
+            return getResEntity(response, true);
         } finally {
             try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
                 if (response != null) {
                     response.close();
                 }
@@ -434,7 +363,6 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return new ResEntity();
     }
 
     /**
@@ -460,30 +388,12 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
-            int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode == HttpStatus.SC_OK) {
-                resultEntity = response.getEntity();
-                if (resultEntity != null) {
-                    String res = EntityUtils.toString(resultEntity, CHARSET);
-                    String cookieString = getCookieString(response);
-                    ResEntity resEntity = new ResEntity();
-                    resEntity.setResponse(res);
-                    resEntity.setHeaders(getHeaders(response));
-                    resEntity.setCookies(formatCookies(cookieString));
-                    return resEntity;
-                }
-            } else {
-                throw new IOException(MessageFormat.format("Request error with error code {0}.", statusCode));
-            }
+            return getResEntity(response, false);
         } finally {
             try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
                 if (response != null) {
                     response.close();
                 }
@@ -491,7 +401,33 @@ public class HttpUtil {
                 e.printStackTrace();
             }
         }
-        return new ResEntity();
+    }
+
+    /**
+     * 获取请求返回对象
+     * @param response
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author yezhendong
+     * @date 2021/8/30
+     */
+    private static ResEntity getResEntity(CloseableHttpResponse response, boolean binary) throws IOException {
+        int statusCode = response.getStatusLine().getStatusCode();
+        ResEntity resEntity = new ResEntity();
+        resEntity.setStatusCode(statusCode);
+        resEntity.setHeaders(getHeaders(response));
+        resEntity.setCookies(formatCookies(getCookieString(response)));
+        HttpEntity resultEntity = response.getEntity();
+        if (resultEntity != null) {
+            if (binary) {
+                byte[] bytes = EntityUtils.toByteArray(resultEntity);
+                resEntity.setBytes(bytes);
+            } else {
+                String res = EntityUtils.toString(resultEntity, CHARSET);
+                resEntity.setResponse(res);
+            }
+            EntityUtils.consume(resultEntity);
+        }
+        return resEntity;
     }
 
     /**
@@ -787,7 +723,10 @@ public class HttpUtil {
         }
     }
 
+    @Data
     public static class ResEntity {
+        
+        private Integer statusCode;
 
         private byte[] bytes;
 
@@ -796,47 +735,5 @@ public class HttpUtil {
         private Map<String, Object> headers;
 
         private Map<String, Object> cookies;
-
-        public byte[] getBytes() {
-            return bytes;
-        }
-
-        public void setBytes(byte[] bytes) {
-            this.bytes = bytes;
-        }
-
-        public String getResponse() {
-            return response;
-        }
-
-        public void setResponse(String response) {
-            this.response = response;
-        }
-
-        public Map<String, Object> getHeaders() {
-            return headers;
-        }
-
-        public void setHeaders(Map<String, Object> headers) {
-            this.headers = headers;
-        }
-
-        public Map<String, Object> getCookies() {
-            return cookies;
-        }
-
-        public void setCookies(Map<String, Object> cookies) {
-            this.cookies = cookies;
-        }
-
-        @Override
-        public String toString() {
-            return "ResEntity{" +
-                    "bytes=" + Arrays.toString(bytes) +
-                    ", response='" + response + '\'' +
-                    ", headers=" + headers +
-                    ", cookies=" + cookies +
-                    '}';
-        }
     }
 }
