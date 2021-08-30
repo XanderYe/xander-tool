@@ -294,7 +294,6 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         CloseableHttpResponse response = null;
-        HttpEntity resultEntity = null;
         try {
             HttpClientContext httpClientContext = new HttpClientContext();
             response = httpClient.execute(httpPost, httpClientContext);
