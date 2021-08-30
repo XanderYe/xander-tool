@@ -301,9 +301,6 @@ public class HttpUtil {
             return getResEntity(response, false);
         } finally {
             try {
-                if (resultEntity != null) {
-                    EntityUtils.consume(resultEntity);
-                }
                 if (response != null) {
                     response.close();
                 }
