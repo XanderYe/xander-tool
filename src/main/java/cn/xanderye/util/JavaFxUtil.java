@@ -2,6 +2,8 @@ package cn.xanderye.util;
 
 import javafx.application.Platform;
 import javafx.scene.control.*;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Optional;
 
@@ -10,6 +12,7 @@ import java.util.Optional;
  *
  * @author XanderYe
  */
+@Slf4j
 public class JavaFxUtil {
 
     private static TextArea logArea = null;
@@ -29,14 +32,16 @@ public class JavaFxUtil {
 
     /**
      * 打印日志
-     * @param msg
+     * @param pattern
+     * @param args
      * @return void
      * @author XanderYe
      * @date 2020/9/4
      */
-    public static void log(String msg) {
-        System.out.print(msg);
-        msg = msg.trim() + "\r\n";
+    public static void log(String pattern, String...args) {
+        String msg = MessageFormatter.arrayFormat(pattern, args).getMessage();
+        log.info(msg);
+        msg = msg + "\r\n";
         if (logArea != null) {
             String finalMsg = msg;
             Platform.runLater(() -> logArea.appendText(finalMsg));
