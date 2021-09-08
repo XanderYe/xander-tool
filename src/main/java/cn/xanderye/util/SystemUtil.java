@@ -1,5 +1,7 @@
 package cn.xanderye.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,6 +10,9 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -17,6 +22,7 @@ import java.util.stream.Collectors;
  *
  * @author XanderYe
  */
+@Slf4j
 public class SystemUtil {
 
     /**
@@ -64,6 +70,18 @@ public class SystemUtil {
     }
 
     /**
+     * 异步掉用cmd方法，默认GBK编码
+     * @param consumer 自由实现日志打印
+     * @param cmdStr
+     * @return void
+     * @author XanderYe
+     * @date 2021/4/18
+     */
+    public static void execStrAsync(Consumer<String> consumer, String cmdStr) {
+        execStrAsync(getCharset(), consumer, cmdStr);
+    }
+
+    /**
      * 调用cmd方法，默认GBK编码
      * @param cmds
      * @return java.lang.String
@@ -75,18 +93,19 @@ public class SystemUtil {
     }
 
     /**
-     * 异步掉用命令
-     * @param cmdStr
-     * @return void
+     * 异步调用cmd方法，默认GBK编码
+     * @param cmds
+     * @return java.lang.String
      * @author XanderYe
-     * @date 2021/4/18
+     * @date 2020/11/5
      */
-    public static void execStrAsync(String cmdStr) throws IOException {
-        Runtime.getRuntime().exec(cmdStr);
+    public static void execStrAsync(Consumer<String> consumer,String...cmds) {
+        execStrAsync(getCharset(), consumer, cmds);
     }
 
+
     /**
-     * 调用cmd方法
+     * 调用cmd方法，同步返回结果
      * @param charset
      * @param cmds
      * @return java.lang.String
@@ -96,7 +115,7 @@ public class SystemUtil {
     public static String execStr(Charset charset, String...cmds) {
         if (1 == cmds.length) {
             if (cmds[0] == null || "".equals(cmds[0])) {
-                throw new NullPointerException("Empty command !");
+                throw new RuntimeException("Empty command !");
             }
             cmds = cmds[0].split(BREAK);
         }
@@ -120,6 +139,51 @@ public class SystemUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 调用cmd，异步打印结果
+     * @param charset
+     * @param consumer 自由实现日志打印
+     * @param cmds
+     * @return void
+     * @author XanderYe
+     * @date 2021/4/18
+     */
+    public static void execStrAsync(Charset charset, Consumer<String> consumer, String...cmds) {
+        if (1 == cmds.length) {
+            if (cmds[0] == null || "".equals(cmds[0])) {
+                throw new RuntimeException("Empty command !");
+            }
+            cmds = cmds[0].split(BREAK);
+        }
+        try {
+            Process process = new ProcessBuilder(cmds).redirectErrorStream(true).start();
+            ExecutorService executorService = Executors.newSingleThreadExecutor();
+            executorService.execute(() -> {
+                try {
+                    InputStream is = process.getInputStream();
+                    BufferedReader buffer = new BufferedReader(new InputStreamReader(is, charset));
+                    String line;
+                    while ((line = buffer.readLine()) != null) {
+                        if (consumer != null) {
+                            consumer.accept(line);
+                        } else {
+                            // 默认打印日志
+                            log.info(line);
+                        }
+                    }
+                    is.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    process.destroy();
+                }
+            });
+            executorService.shutdown();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
