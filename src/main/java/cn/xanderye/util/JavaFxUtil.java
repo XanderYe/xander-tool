@@ -2,10 +2,12 @@ package cn.xanderye.util;
 
 import javafx.application.Platform;
 import javafx.scene.control.*;
+import javafx.util.StringConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 
 import java.util.Optional;
+import java.util.function.Function;
 
 /**
  * Created on 2020/9/2.
@@ -16,8 +18,6 @@ import java.util.Optional;
 public class JavaFxUtil {
 
     private static TextArea logArea = null;
-
-    private static final String NUMBER_REGEX = "\\d*";
 
     /**
      * 日志方法首先需要在Controller的initialize中执行
@@ -114,33 +114,53 @@ public class JavaFxUtil {
     }
 
     /**
-     * 文本框只允许输入数字
-     * @param textField
-     * @param min
-     * @param max
+     * 列表设置展示字段
+     * @param listView listView对象
+     * @param function lambda表达式
      * @return void
      * @author XanderYe
-     * @date 2021/5/1
+     * @date 2021/10/13
      */
-    public static void checkNumberListener(TextField textField, Long min, Long max) {
-        textField.textProperty().addListener((observable, oldValue, newValue) -> {
-            long newNum;
-            if (!newValue.matches(NUMBER_REGEX) || "".equals(newValue)) {
-                String number = newValue.replaceAll("[^\\d]", "");
-                newNum = "".equals(number) ? 0 : Long.parseLong(number);
-            } else {
-                try {
-                    newNum = Long.parseLong(newValue);
-                } catch (NumberFormatException e) {
-                    newNum = Long.MAX_VALUE;
+    public static <T> void listViewConverter(ListView<T> listView, Function<T, Object> function) {
+        listView.setCellFactory(param -> new ListCell<T>(){
+            @Override
+            protected void updateItem(T item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || function.apply(item) == null) {
+                    setText(null);
+                } else {
+                    setText(String.valueOf(function.apply(item)));
                 }
-                if (min != null) {
-                    newNum = Math.max(newNum, min);
-                }
-                long finalMax = max == null ? Long.MAX_VALUE : max;
-                newNum = Math.min(newNum, finalMax);
             }
-            textField.setText(String.valueOf(newNum));
+        });
+    }
+
+    /**
+     * 下拉设置展示字段
+     * @param comboBox comboBox对象
+     * @param function lambda表达式
+     * @return void
+     * @author XanderYe
+     * @date 2021/10/13
+     */
+    public static <T> void comboBoxConverter(ComboBox<T> comboBox, Function<T, Object> function) {
+        comboBox.setConverter(new StringConverter<T>() {
+            @Override
+            public String toString(T object) {
+                if (object != null) {
+                    return String.valueOf(function.apply(object));
+                }
+                return null;
+            }
+            @Override
+            public T fromString(String string) {
+                for (T item : comboBox.getItems()) {
+                    if (item != null && string.equals(function.apply(item))) {
+                        return item;
+                    }
+                }
+                return null;
+            }
         });
     }
 }
