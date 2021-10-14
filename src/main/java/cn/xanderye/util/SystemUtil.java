@@ -99,7 +99,7 @@ public class SystemUtil {
      * @author XanderYe
      * @date 2020/11/5
      */
-    public static void execStrAsync(Consumer<String> consumer,String...cmds) {
+    public static void execStrAsync(Consumer<String> consumer, String...cmds) {
         execStrAsync(getCharset(), consumer, cmds);
     }
 

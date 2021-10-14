@@ -116,7 +116,7 @@ public class JavaFxUtil {
     /**
      * 列表设置展示字段
      * @param listView listView对象
-     * @param function lambda表达式
+     * @param function 函数式方法实现返回字段值
      * @return void
      * @author XanderYe
      * @date 2021/10/13
@@ -138,7 +138,7 @@ public class JavaFxUtil {
     /**
      * 下拉设置展示字段
      * @param comboBox comboBox对象
-     * @param function lambda表达式
+     * @param function 函数式方法实现返回字段值
      * @return void
      * @author XanderYe
      * @date 2021/10/13
