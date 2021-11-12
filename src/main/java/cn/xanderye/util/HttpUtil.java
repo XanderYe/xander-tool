@@ -310,6 +310,46 @@ public class HttpUtil {
     }
 
     /**
+     * POST提交XML基础方法
+     *
+     * @param url
+     * @param headers
+     * @param xml
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author XanderYe
+     * @date 2020/2/4
+     */
+    public static ResEntity doPostXml(String url, Map<String, Object> headers, Map<String, Object> cookies, String xml) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + url);
+        // 拼接参数
+        if (xml != null && !"".equals(xml)) {
+            StringEntity requestEntity = new StringEntity(xml, CHARSET);
+            requestEntity.setContentEncoding(CHARSET);
+            requestEntity.setContentType("application/xml");
+            httpPost.setEntity(requestEntity);
+        }
+        // 添加headers
+        addHeaders(httpPost, headers);
+        // 添加cookies
+        addCookies(httpPost, cookies);
+        CloseableHttpResponse response = null;
+        try {
+            HttpClientContext httpClientContext = new HttpClientContext();
+            response = httpClient.execute(httpPost, httpClientContext);
+            return getResEntity(response, false);
+        } finally {
+            try {
+                if (response != null) {
+                    response.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    /**
      * get下载基础方法
      *
      * @param url
