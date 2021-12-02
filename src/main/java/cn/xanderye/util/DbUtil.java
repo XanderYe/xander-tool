@@ -15,6 +15,7 @@ public class DbUtil {
     private static String url;
     private static String username;
     private static String password;
+    private static String driver;
 
     private static final char UNDERLINE = '_';
 
@@ -28,6 +29,7 @@ public class DbUtil {
             url = p.getProperty("db.url");
             username = p.getProperty("db.username");
             password = p.getProperty("db.password");
+            driver = p.getProperty("db.driver");
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -43,7 +45,7 @@ public class DbUtil {
     public static Connection getConn() throws SQLException {
         try {
             if (connection == null || connection.isClosed()) {
-                Class.forName("com.mysql.cj.jdbc.Driver");
+                Class.forName(driver);
                 connection = DriverManager.getConnection(url, username, password);
             }
         } catch (ClassNotFoundException e) {
