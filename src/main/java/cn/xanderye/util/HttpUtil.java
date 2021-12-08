@@ -319,7 +319,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2020/2/4
      */
-    public static ResEntity doPostXml(String url, Map<String, Object> headers, Map<String, Object> cookies, String xml) throws IOException {
+    public static ResEntity doPostXML(String url, Map<String, Object> headers, Map<String, Object> cookies, String xml) throws IOException {
         HttpPost httpPost = new HttpPost(baseUrl + url);
         // 拼接参数
         if (xml != null && !"".equals(xml)) {
