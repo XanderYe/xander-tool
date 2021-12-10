@@ -18,7 +18,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
@@ -51,14 +50,6 @@ public class HttpUtil {
      * 默认请求超时
      */
     private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-    /**
-     * 默认连接池最大连接数
-     */
-    private static final int DEFAULT_MAX_TOTAL = 20;
-    /**
-     * 默认同一域名最大连接数
-     */
-    private static final int DEFAULT_MAX_PER_ROUTE = 2;
     /**
      * 默认重试次数
      */
@@ -98,30 +89,15 @@ public class HttpUtil {
      */
     private static int connectTimeout;
     /**
-     * 连接池最大连接数
-     */
-    private static int maxTotal;
-    /**
-     * 同一域名最大连接数
-     */
-    private static int maxPerRoute;
-    /**
      * 重试次数
      */
     private static int retryCount;
-    /**
-     * HttpClient对象
-     */
-    private static CloseableHttpClient httpClient;
 
     // 静态代码块初始化配置
     static {
         socketTimeout = DEFAULT_SOCKET_TIMEOUT;
         connectTimeout = DEFAULT_CONNECT_TIMEOUT;
-        maxTotal = DEFAULT_MAX_TOTAL;
-        maxPerRoute = DEFAULT_MAX_PER_ROUTE;
         retryCount = DEFAULT_RETRY_COUNT;
-        initHttpClient();
     }
 
     /**
@@ -131,17 +107,14 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static void initHttpClient() {
+    public static CloseableHttpClient getHttpClient() {
         RequestConfig config = RequestConfig.custom()
                 .setSocketTimeout(socketTimeout)
                 .setConnectTimeout(connectTimeout)
                 .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                 .setRedirectsEnabled(redirect)
                 .build();
-        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-        connectionManager.setMaxTotal(maxTotal);
-        connectionManager.setDefaultMaxPerRoute(maxPerRoute);
-        httpClient = custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
+        return custom().setDefaultRequestConfig(config).build();
     }
 
     /**
@@ -253,7 +226,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, false);
         }
     }
@@ -290,7 +264,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
         }
     }
@@ -319,7 +294,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
         }
     }
@@ -348,7 +324,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
         }
     }
@@ -391,7 +368,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, true);
         }
     }
@@ -419,7 +397,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        try (CloseableHttpClient httpClient = getHttpClient();
+             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
         }
     }
@@ -709,19 +688,6 @@ public class HttpUtil {
     }
 
     /**
-     * 设置连接池
-     * @param customMaxTotal
-     * @param customMaxPerRoute
-     * @return void
-     * @author XanderYe
-     * @date 2021/12/10
-     */
-    public static void setConnectionManager(int customMaxTotal, int customMaxPerRoute) {
-        maxTotal = customMaxTotal;
-        maxPerRoute = customMaxPerRoute;
-    }
-
-    /**
      * 设置重试机制
      * @param customRetry
      * @return void
@@ -733,17 +699,6 @@ public class HttpUtil {
         if (customRetry > 0) {
             retryCount = customRetry;
         }
-    }
-
-    /**
-     * 直接设置自定义httpClient
-     * @param customHttpClient
-     * @return void
-     * @author XanderYe
-     * @date 2021/5/24
-     */
-    public static void setHttpClient(CloseableHttpClient customHttpClient) {
-        httpClient = customHttpClient;
     }
 
     public static void setBaseUrl(String base) {
