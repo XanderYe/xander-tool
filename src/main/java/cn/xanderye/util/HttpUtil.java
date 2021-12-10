@@ -18,6 +18,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
@@ -42,48 +43,72 @@ import java.util.stream.Collectors;
  */
 public class HttpUtil {
 
+    /**
+     * 默认socket连接超时
+     */
+    private static final int DEFAULT_SOCKET_TIMEOUT = 15000;
+    /**
+     * 默认请求超时
+     */
+    private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
+    /**
+     * 默认连接池最大连接数
+     */
+    private static final int DEFAULT_MAX_TOTAL = 400;
+    /**
+     * 默认同一域名最大连接数
+     */
+    private static final int DEFAULT_MAX_PER_ROUTE = 200;
+    /**
+     * 默认重试次数
+     */
+    private static final int DEFAULT_RETRY_COUNT = 3;
+    /**
+     * 默认编码
+     */
+    private static final String CHARSET = "UTF-8";
+    /**
+     * 默认请求头
+     */
+    private static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
+    /**
+     * 基本请求路径
+     */
     private static String baseUrl = "";
     /**
      * 是否使用代理
      */
     private static boolean enableProxy = false;
-    private static String defaultProxyIp = "127.0.0.1";
-    private static int defaultProxyPort = 8888;
-
+    private static String proxyIp = "127.0.0.1";
+    private static int proxyPort = 8888;
     /**
      * 是否自动重定向
      */
     private static boolean redirect = false;
-
-    /**
-     * socket连接超时
-     */
-    private static int defaultSocketTimeout = 15000;
-
-    /**
-     * 请求超时
-     */
-    private static int defaultConnectTimeout = 30000;
-
     /**
      * 是否重试
      */
     private static boolean enableRetry = false;
     /**
+     * socket连接超时
+     */
+    private static int socketTimeout;
+    /**
+     * 连接超时
+     */
+    private static int connectTimeout;
+    /**
+     * 连接池最大连接数
+     */
+    private static int maxTotal;
+    /**
+     * 同一域名最大连接数
+     */
+    private static int maxPerRoute;
+    /**
      * 重试次数
      */
-    private static int defaultRetryCount = 3;
-
-    /**
-     * 默认编码
-     */
-    private static final String CHARSET = "UTF-8";
-
-    /**
-     * 默认请求头
-     */
-    private static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
-
+    private static int retryCount;
     /**
      * HttpClient对象
      */
@@ -91,6 +116,11 @@ public class HttpUtil {
 
     // 静态代码块初始化配置
     static {
+        socketTimeout = DEFAULT_SOCKET_TIMEOUT;
+        connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        maxTotal = DEFAULT_MAX_TOTAL;
+        maxPerRoute = DEFAULT_MAX_PER_ROUTE;
+        retryCount = DEFAULT_RETRY_COUNT;
         initHttpClient();
     }
 
@@ -101,14 +131,17 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2021/5/24
      */
-    private static void initHttpClient() {
+    public static void initHttpClient() {
         RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(defaultConnectTimeout)
-                .setSocketTimeout(defaultSocketTimeout)
+                .setSocketTimeout(socketTimeout)
+                .setConnectTimeout(connectTimeout)
                 .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                 .setRedirectsEnabled(redirect)
                 .build();
-        httpClient = custom().setDefaultRequestConfig(config).build();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
+        connectionManager.setMaxTotal(maxTotal);
+        connectionManager.setDefaultMaxPerRoute(maxPerRoute);
+        httpClient = custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
     }
 
     /**
@@ -124,7 +157,7 @@ public class HttpUtil {
         httpClientBuilder.setSSLSocketFactory(ignoreCertificates());
         if (enableProxy) {
             // 使用代理
-            httpClientBuilder.setProxy(new HttpHost(defaultProxyIp, defaultProxyPort));
+            httpClientBuilder.setProxy(new HttpHost(proxyIp, proxyPort));
         }
         if (enableRetry) {
             // 使用重试机制
@@ -637,11 +670,14 @@ public class HttpUtil {
 
     /**
      * 重试配置
-     * @return
+     * @param
+     * @return org.apache.http.client.HttpRequestRetryHandler
+     * @author yezhendong
+     * @date 2021/6/24
      */
     private static HttpRequestRetryHandler retryHandler() {
         return (e, retryTimes, httpContext) -> {
-            if (retryTimes > defaultRetryCount) {
+            if (retryTimes > retryCount) {
                 // 重试次数大于3次
                 return false;
             }
@@ -682,63 +718,69 @@ public class HttpUtil {
 
     /**
      * 设置重定向
-     * @param redirect
+     * @param customRedirect
      * @return void
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static void setRedirect(boolean redirect) {
-        HttpUtil.redirect = redirect;
-        initHttpClient();
+    public static void setRedirect(boolean customRedirect) {
+        redirect = customRedirect;
     }
 
     /**
      * 配置代理
-     * @param useProxy
-     * @param proxyIp
-     * @param proxyPort
+     * @param customProxyIp
+     * @param customProxyPort
      * @return void
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static void setProxy(boolean useProxy, String proxyIp, Integer proxyPort) {
-        HttpUtil.enableProxy = useProxy;
-        if (null != proxyIp && !"".equals(proxyIp)) {
-            HttpUtil.defaultProxyIp = proxyIp;
+    public static void setProxy(String customProxyIp, Integer customProxyPort) {
+        if (null != customProxyIp && !"".equals(customProxyIp) && null != customProxyPort) {
+            enableProxy = true;
+            proxyIp = customProxyIp;
+            proxyPort = customProxyPort;
         }
-        if (null != proxyPort) {
-            HttpUtil.defaultProxyPort = proxyPort;
-        }
-        initHttpClient();
     }
 
     /**
      * 设置超时
-     * @param socketTimeout
-     * @param connectTimeout
+     * @param customSocketTimeout
+     * @param customConnectTimeout
      * @return void
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static void setTimeout(int socketTimeout, int connectTimeout) {
-        defaultSocketTimeout = socketTimeout;
-        defaultConnectTimeout = connectTimeout;
-        initHttpClient();
+    public static void setTimeout(int customSocketTimeout, int customConnectTimeout) {
+        socketTimeout = customSocketTimeout;
+        connectTimeout = customConnectTimeout;
+    }
+
+    /**
+     * 设置连接池
+     * @param customMaxTotal
+     * @param customMaxPerRoute
+     * @return void
+     * @author XanderYe
+     * @date 2021/12/10
+     */
+    public static void setConnectionManager(int customMaxTotal, int customMaxPerRoute) {
+        maxTotal = customMaxTotal;
+        maxPerRoute = customMaxPerRoute;
     }
 
     /**
      * 设置重试机制
-     * @param retryCount
+     * @param customRetry
      * @return void
      * @author XanderYe
      * @date 2021/6/24
      */
-    public static void setRetry(int retryCount) {
-        if (retryCount > 0) {
-            defaultRetryCount = retryCount;
+    public static void setRetry(boolean retry, int customRetry) {
+        enableRetry = retry;
+        if (customRetry > 0) {
+            retryCount = customRetry;
         }
-        enableRetry = true;
-        initHttpClient();
     }
 
     /**
