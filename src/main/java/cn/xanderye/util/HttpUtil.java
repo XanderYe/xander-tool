@@ -43,13 +43,13 @@ import java.util.stream.Collectors;
 public class HttpUtil {
 
     /**
-     * 默认socket连接超时
-     */
-    private static final int DEFAULT_SOCKET_TIMEOUT = 15000;
-    /**
      * 默认请求超时
      */
     private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
+    /**
+     * 默认socket连接超时
+     */
+    private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
     /**
      * 默认重试次数
      */
@@ -109,8 +109,8 @@ public class HttpUtil {
      */
     public static CloseableHttpClient getHttpClient() {
         RequestConfig config = RequestConfig.custom()
-                .setSocketTimeout(socketTimeout)
                 .setConnectTimeout(connectTimeout)
+                .setSocketTimeout(socketTimeout)
                 .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                 .setRedirectsEnabled(redirect)
                 .build();
@@ -676,15 +676,15 @@ public class HttpUtil {
 
     /**
      * 设置超时
-     * @param customSocketTimeout
      * @param customConnectTimeout
+     * @param customSocketTimeout
      * @return void
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static void setTimeout(int customSocketTimeout, int customConnectTimeout) {
-        socketTimeout = customSocketTimeout;
+    public static void setTimeout(int customConnectTimeout, int customSocketTimeout) {
         connectTimeout = customConnectTimeout;
+        socketTimeout = customSocketTimeout;
     }
 
     /**
