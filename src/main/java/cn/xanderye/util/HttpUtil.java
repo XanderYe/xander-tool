@@ -54,11 +54,11 @@ public class HttpUtil {
     /**
      * 默认连接池最大连接数
      */
-    private static final int DEFAULT_MAX_TOTAL = 400;
+    private static final int DEFAULT_MAX_TOTAL = 20;
     /**
      * 默认同一域名最大连接数
      */
-    private static final int DEFAULT_MAX_PER_ROUTE = 200;
+    private static final int DEFAULT_MAX_PER_ROUTE = 2;
     /**
      * 默认重试次数
      */
@@ -206,6 +206,18 @@ public class HttpUtil {
     }
 
     /**
+     * POST提交XML请求
+     * @param url
+     * @param xml
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author XanderYe
+     * @date 2020/12/10
+     */
+    public static ResEntity doPostXML(String url, String xml) throws IOException {
+        return doPostXML(url, null, null, xml);
+    }
+
+    /**
      * get请求基础方法
      *
      * @param url
@@ -240,19 +252,9 @@ public class HttpUtil {
         addHeaders(httpGet, headers);
         // 添加cookies
         addCookies(httpGet, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpGet, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, false);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -287,19 +289,9 @@ public class HttpUtil {
         addHeaders(httpPost, headers);
         // 添加cookies
         addCookies(httpPost, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -326,19 +318,9 @@ public class HttpUtil {
         addHeaders(httpPost, headers);
         // 添加cookies
         addCookies(httpPost, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -365,19 +347,9 @@ public class HttpUtil {
         addHeaders(httpPost, headers);
         // 添加cookies
         addCookies(httpPost, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -418,19 +390,9 @@ public class HttpUtil {
         addHeaders(httpGet, headers);
         // 添加cookies
         addCookies(httpGet, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpGet, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, true);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -456,19 +418,9 @@ public class HttpUtil {
         addHeaders(httpPost, headers);
         // 添加cookies
         addCookies(httpPost, cookies);
-        CloseableHttpResponse response = null;
-        try {
-            HttpClientContext httpClientContext = new HttpClientContext();
-            response = httpClient.execute(httpPost, httpClientContext);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
-        } finally {
-            try {
-                if (response != null) {
-                    response.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
