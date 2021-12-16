@@ -75,7 +75,3 @@ JavaFx工具类，封装了JavaFx窗口的一些操作
 ### [EmailUtil](src/main/java/cn/xanderye/util/EmailUtil.java)
 
 邮件工具类，发送邮件
-
-### [AreaUtil](src/main/java/cn/xanderye/util/AreaUtil.java)
-
-行政区划工具类
