@@ -6,7 +6,7 @@
 <dependency>
     <groupId>cn.xanderye</groupId>
     <artifactId>xander-tool</artifactId>
-    <version>1.2</version>
+    <version>1.4</version>
 </dependency>
 ```
 
