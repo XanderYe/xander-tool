@@ -479,7 +479,16 @@ public class HttpUtil {
      */
     private static String getCookieString(CloseableHttpResponse response) {
         Header[] headers = response.getHeaders("Set-Cookie");
-        return Arrays.stream(headers).map(Header::getValue).collect(Collectors.joining("; "));
+        return Arrays.stream(headers).map(header -> {
+            String valueStr = header.getValue();
+            if (valueStr != null) {
+                String[] valueStrArray = valueStr.split(";");
+                if (valueStrArray.length > 0) {
+                    return valueStrArray[0];
+                }
+            }
+            return valueStr;
+        }).collect(Collectors.joining("; "));
     }
 
     /**
