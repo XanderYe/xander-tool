@@ -1,12 +1,13 @@
 package cn.xanderye.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Properties;
@@ -16,23 +17,47 @@ import java.util.Properties;
  * @description:
  * @date 2021/4/22 13:40
  */
+@Slf4j
 public class EmailUtil {
-    private static final Properties MAIL_PROPERTIES = new Properties();
 
+    /**
+     * 配置对象
+     */
+    private static Properties mailConfig;
+    /**
+     * 用户名
+     */
     private static String username = null;
-
+    /**
+     * 密码
+     */
     private static String password = null;
 
     static {
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             InputStream is = classLoader.getResourceAsStream("email.properties");
-            MAIL_PROPERTIES.load(is);
-            username = MAIL_PROPERTIES.getProperty("mail.username");
-            password = MAIL_PROPERTIES.getProperty("mail.password");
-        } catch (IOException e) {
-            e.printStackTrace();
+            if (is != null) {
+                mailConfig.load(is);
+                username = mailConfig.getProperty("mail.username");
+                password = mailConfig.getProperty("mail.password");
+            } else {
+                log.warn("Could not found email.properties, please configure manually.");
+            }
+        } catch (Exception e) {
+            log.error("Error initializing the config.");
         }
+    }
+
+    /**
+     * 手动配置邮箱
+     * @param properties
+     * @return void
+     * @author yezhendong
+     * @date 2021/12/16
+     */
+    public static void setConfig(Properties properties) {
+        mailConfig = properties;
     }
 
     /**
@@ -45,7 +70,7 @@ public class EmailUtil {
      * @date 2021/4/22
      */
     public static void sendSimpleEmail(String title, String content, String toEmail) throws MessagingException {
-        Session session = Session.getInstance(MAIL_PROPERTIES);
+        Session session = Session.getInstance(mailConfig);
         session.setDebug(true);
         Message msg = new MimeMessage(session);
 
@@ -80,7 +105,7 @@ public class EmailUtil {
         if (toEmailList == null || toEmailList.isEmpty()) {
             throw new RuntimeException("接收人不为空");
         }
-        Session session = Session.getInstance(MAIL_PROPERTIES);
+        Session session = Session.getInstance(mailConfig);
         session.setDebug(true);
         Message msg = new MimeMessage(session);
 

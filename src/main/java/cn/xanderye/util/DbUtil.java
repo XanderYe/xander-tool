@@ -57,7 +57,7 @@ public class DbUtil {
     }
 
     /**
-     * 手动配置数据库配置
+     * 手动配置数据库
      * @param customUrl
      * @param customUsername
      * @param customPassword
