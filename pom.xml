@@ -92,9 +92,6 @@
           <include>*.json</include>
           <include>*.template</include>
         </includes>
-        <excludes>
-          <exclude>**/js/</exclude>
-        </excludes>
       </resource>
     </resources>
 
