@@ -1,9 +1,6 @@
 package cn.xanderye.util;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
@@ -11,7 +8,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 /**
  * Created on 2020/5/19.
@@ -19,6 +15,16 @@ import java.util.Base64;
  * @author XanderYe
  */
 public class RSAUtil {
+
+    /**
+     * 签名算法
+     */
+    public static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+    /**
+     * KEY算法
+     */
+    public static final String KEY_ALGORITHM = "RSA";
+
     /**
      * 随机生成密钥对
      *
@@ -31,7 +37,7 @@ public class RSAUtil {
         // KeyPairGenerator类用于生成公钥和私钥对，基于RSA算法生成对象
         KeyPairGenerator keyPairGen = null;
         try {
-            keyPairGen = KeyPairGenerator.getInstance("RSA");
+            keyPairGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -45,9 +51,9 @@ public class RSAUtil {
             // 得到公钥
             RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
             // 得到公钥字符串
-            String publicKeyString = Base64.getEncoder().encodeToString(publicKey.getEncoded());
+            String publicKeyString = CodecUtil.base64Encode(publicKey.getEncoded());
             // 得到私钥字符串
-            String privateKeyString = Base64.getEncoder().encodeToString(privateKey.getEncoded());
+            String privateKeyString = CodecUtil.base64Encode(privateKey.getEncoded());
             // 将密钥对写入到文件
             FileWriter pubFw = new FileWriter(filePath + "/publicKey.keystore");
             FileWriter priFw = new FileWriter(filePath + "/privateKey.keystore");
@@ -68,19 +74,21 @@ public class RSAUtil {
      * 从文件中加载公钥
      *
      * @param path
-     * @return java.lang.String
+     * @return java.security.interfaces.RSAPrivateKey
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static String loadPublicKeyByFile(String path) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(path + File.separator + "publicKey.keystore"));
-        String readLine = null;
+    public static RSAPublicKey loadPublicKeyByFile(String path) throws Exception {
+        BufferedReader br = new BufferedReader(new FileReader(path));
+        String readLine;
         StringBuilder sb = new StringBuilder();
         while ((readLine = br.readLine()) != null) {
-            sb.append(readLine);
+            if (readLine.charAt(0) != '-') {
+                sb.append(readLine);
+            }
         }
         br.close();
-        return sb.toString();
+        return loadPublicKeyByStr(sb.toString());
     }
 
     /**
@@ -93,8 +101,8 @@ public class RSAUtil {
      */
     public static RSAPublicKey loadPublicKeyByStr(String publicKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (publicKeyStr != null) {
-            byte[] buffer = Base64.getDecoder().decode(publicKeyStr);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            byte[] buffer = CodecUtil.base64DecodeToByteArray(publicKeyStr);
+            KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(buffer);
             return (RSAPublicKey) keyFactory.generatePublic(keySpec);
         }
@@ -105,19 +113,21 @@ public class RSAUtil {
      * 从文件中加载私钥
      *
      * @param path
-     * @return java.lang.String
+     * @return java.security.interfaces.RSAPrivateKey
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static String loadPrivateKeyByFile(String path) throws IOException {
-        BufferedReader br = new BufferedReader(new FileReader(path + File.separator + "privateKey.keystore"));
+    public static RSAPrivateKey loadPrivateKeyByFile(String path) throws Exception {
+        BufferedReader br = new BufferedReader(new FileReader(path));
         String readLine;
         StringBuilder sb = new StringBuilder();
         while ((readLine = br.readLine()) != null) {
-            sb.append(readLine);
+            if (readLine.charAt(0) != '-') {
+                sb.append(readLine);
+            }
         }
         br.close();
-        return sb.toString();
+        return loadPrivateKeyByStr(sb.toString());
     }
 
     /**
@@ -130,9 +140,9 @@ public class RSAUtil {
      */
     public static RSAPrivateKey loadPrivateKeyByStr(String privateKeyStr) throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (privateKeyStr != null) {
-            byte[] buffer = Base64.getDecoder().decode(privateKeyStr);
+            byte[] buffer = CodecUtil.base64DecodeToByteArray(privateKeyStr);
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(buffer);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
             return (RSAPrivateKey) keyFactory.generatePrivate(keySpec);
         }
         return null;
@@ -140,77 +150,104 @@ public class RSAUtil {
 
     /**
      * 使用公钥加密
-     * @param publicKey
      * @param plainTextData
+     * @param publicKey
      * @return byte[]
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static byte[] encrypt(RSAPublicKey publicKey, byte[] plainTextData)
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(byte[] plainTextData, RSAPublicKey publicKey) throws Exception {
         if (publicKey == null) {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return cipher.doFinal(plainTextData);
     }
 
     /**
      * 使用私钥加密
-     * @param privateKey
      * @param plainTextData
+     * @param privateKey
      * @return byte[]
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static byte[] encrypt(RSAPrivateKey privateKey, byte[] plainTextData)
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+    public static byte[] encrypt(byte[] plainTextData, RSAPrivateKey privateKey) throws Exception {
         if (privateKey == null) {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
         return cipher.doFinal(plainTextData);
     }
 
     /**
      * 使用私钥解密
-     * @param privateKey
      * @param cipherData
+     * @param privateKey
      * @return byte[]
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static byte[] decrypt(RSAPrivateKey privateKey, byte[] cipherData)
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException  {
+    public static byte[] decrypt(byte[] cipherData, RSAPrivateKey privateKey) throws Exception {
         if (privateKey == null) {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return cipher.doFinal(cipherData);
     }
 
     /**
      * 使用公钥解密
-     * @param publicKey
      * @param cipherData
+     * @param publicKey
      * @return byte[]
      * @author XanderYe
      * @date 2020/5/19
      */
-    public static byte[] decrypt(RSAPublicKey publicKey, byte[] cipherData)
-            throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException  {
+    public static byte[] decrypt(byte[] cipherData, RSAPublicKey publicKey) throws Exception {
         if (publicKey == null) {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance("RSA");
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
         return cipher.doFinal(cipherData);
+    }
+
+    /**
+     * 私钥签名
+     * @param data
+     * @param privateKey
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/12/21
+     */
+    public static String sign(byte[] data, PrivateKey privateKey) throws Exception {
+        Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+        signature.initSign(privateKey);
+        signature.update(data);
+        return CodecUtil.base64Encode(signature.sign());
+    }
+
+    /**
+     * 公钥校验
+     * @param data
+     * @param publicKey
+     * @param sign
+     * @return boolean
+     * @author XanderYe
+     * @date 2021/12/21
+     */
+    public static boolean verify(byte[] data, PublicKey publicKey, String sign) throws Exception {
+        Signature signature = Signature.getInstance(SIGNATURE_ALGORITHM);
+        signature.initVerify(publicKey);
+        signature.update(data);
+        return signature.verify(CodecUtil.base64DecodeToByteArray(sign));
     }
 }

@@ -1,6 +1,5 @@
 package cn.xanderye.util;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -28,7 +27,7 @@ public class CodecUtil {
      * @date 2021/1/29
      */
     public static String base64Encode(byte[] bytes) {
-        return Base64.getEncoder().encodeToString(bytes);
+        return Base64.getMimeEncoder().encodeToString(bytes);
     }
 
     /**
@@ -64,8 +63,8 @@ public class CodecUtil {
      * @author XanderYe
      * @date 2021/1/29
      */
-    public static byte[] base64DecodeToByteArray(String base64Str) throws IOException {
-        return Base64.getDecoder().decode(base64Str);
+    public static byte[] base64DecodeToByteArray(String base64Str) {
+        return Base64.getMimeDecoder().decode(base64Str);
     }
 
     /**
@@ -75,7 +74,7 @@ public class CodecUtil {
      * @author XanderYe
      * @date 2021/1/29
      */
-    public static String base64Decode(String base64Str) throws IOException {
+    public static String base64Decode(String base64Str) {
         return base64Decode(base64Str, StandardCharsets.UTF_8);
     }
 
@@ -86,7 +85,7 @@ public class CodecUtil {
      * @author XanderYe
      * @date 2021/1/29
      */
-    public static String base64Decode(String base64Str, Charset charset) throws IOException {
+    public static String base64Decode(String base64Str, Charset charset) {
         return new String(base64DecodeToByteArray(base64Str), charset);
     }
 
