@@ -55,10 +55,6 @@ zip压缩解压工具类
 
 文件操作工具类，支持复制和删除文件/文件夹操作
 
-### [JavaFxUtil](src/main/java/cn/xanderye/util/JavaFxUtil.java)
-
-JavaFx工具类，封装了JavaFx窗口的一些操作
-
 ### [SystemUtil](src/main/java/cn/xanderye/util/SystemUtil.java)
 
 系统工具类 封装系统的判断和操作，支持cmd命令调用和注册表操作
