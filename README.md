@@ -10,8 +10,10 @@
 </dependency>
 ```
 
-## Contact US
-For cooperation and suggestions please contact XanderYe@outlook.com
+## 🤝 特别感谢
+特别感谢Jetbrains为本项目赞助License
+
+[![Jetbrains](https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg?_gl=1*ng7jek*_ga*NTA3MTc0NTg3LjE2NDEwODQzMDI.*_ga_V0XZL7QHEB*MTY0MjU1NzM4OC40LjEuMTY0MjU1ODI0Mi4w)](https://jb.gg/OpenSourceSupport)
 
 ## 工具类详情
 
