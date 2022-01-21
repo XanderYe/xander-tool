@@ -18,6 +18,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
@@ -32,10 +33,15 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
  * http请求工具 返回对象包括状态码、响应头、cookie和响应体，自行根据状态码判断
+ * 默认不使用连接池，需要请调用 enableConnectionPool
  *
  * @author XanderYe
  * @date 2020/2/4
@@ -54,6 +60,23 @@ public class HttpUtil {
      * 默认重试次数
      */
     private static final int DEFAULT_RETRY_COUNT = 3;
+    /**
+     * 默认最大连接数
+     */
+    private static final int DEFAULT_MAX_TOTAL = 200;
+    /**
+     * 默认单个路由最大连接数
+     */
+    private static final int DEFAULT_MAX_PER_ROUTE = 100;
+
+    /**
+     * 默认清空空闲连接 秒
+     */
+    private static final int DEFAULT_IDLE_TIMEOUT = 5;
+    /**
+     * 默认定时器间隔 秒
+     */
+    private static final int DEFAULT_MONITOR_PERIOD = 30;
     /**
      * 默认编码
      */
@@ -92,22 +115,63 @@ public class HttpUtil {
      * 重试次数
      */
     private static int retryCount;
+    /**
+     * 最大连接数
+     */
+    private static int maxTotal;
+    /**
+     * 单个路由最大连接数
+     */
+    private static int maxPerRoute;
+    /**
+     * 清空空闲连接 秒
+     */
+    private static int idleTimeout;
+    /**
+     * 定时器间隔  秒
+     */
+    private static int monitorPeriod;
+
+    /**
+     * 是否启用连接池
+     */
+    private static AtomicBoolean connectionPool = new AtomicBoolean(false);
+    /**
+     * 连接池httpClient对象
+     */
+    private static volatile CloseableHttpClient httpClient;
+    /**
+     * 连接池配置
+     */
+    private static volatile PoolingHttpClientConnectionManager connectionManager;
+    /**
+     * 定时器
+     */
+    private static volatile ScheduledExecutorService monitorExecutor;
 
     // 静态代码块初始化配置
     static {
         socketTimeout = DEFAULT_SOCKET_TIMEOUT;
         connectTimeout = DEFAULT_CONNECT_TIMEOUT;
         retryCount = DEFAULT_RETRY_COUNT;
+        maxTotal = DEFAULT_MAX_TOTAL;
+        maxPerRoute = DEFAULT_MAX_PER_ROUTE;
+        idleTimeout = DEFAULT_IDLE_TIMEOUT;
+        monitorPeriod = DEFAULT_MONITOR_PERIOD;
     }
 
     /**
-     * 初始化配置
+     * 获取客户端
      * @param
      * @return void
      * @author XanderYe
      * @date 2021/5/24
      */
-    public static CloseableHttpClient getHttpClient() {
+    private static CloseableHttpClient getHttpClient() {
+        // 启用了连接池配置，直接返回全局客户端
+        if (connectionPool.get()) {
+            return httpClient;
+        }
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(connectTimeout)
                 .setSocketTimeout(socketTimeout)
@@ -115,6 +179,40 @@ public class HttpUtil {
                 .setRedirectsEnabled(redirect)
                 .build();
         return custom().setDefaultRequestConfig(config).build();
+    }
+
+    /**
+     * 初始化连接池配置
+     * @param
+     * @return void
+     * @author XanderYe
+     * @date 2022/1/21
+     */
+    private static void initPoolingHttpClient() {
+        if (httpClient == null) {
+            synchronized (HttpUtil.class) {
+                if (httpClient == null) {
+                    RequestConfig config = RequestConfig.custom()
+                            .setConnectTimeout(connectTimeout)
+                            .setSocketTimeout(socketTimeout)
+                            .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
+                            .setRedirectsEnabled(redirect)
+                            .build();
+                    connectionManager = new PoolingHttpClientConnectionManager();
+                    connectionManager.setMaxTotal(maxTotal);
+                    connectionManager.setDefaultMaxPerRoute(maxPerRoute);
+                    httpClient = custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
+                    //开启监控线程,对异常和空闲线程进行关闭
+                    monitorExecutor = Executors.newScheduledThreadPool(1);
+                    monitorExecutor.scheduleAtFixedRate(() -> {
+                        //关闭异常连接
+                        connectionManager.closeExpiredConnections();
+                        //关闭空闲的连接
+                        connectionManager.closeIdleConnections(idleTimeout, TimeUnit.SECONDS);
+                    }, 0, monitorPeriod, TimeUnit.SECONDS);
+                }
+            }
+        }
     }
 
     /**
@@ -226,9 +324,13 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -264,9 +366,13 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -297,6 +403,10 @@ public class HttpUtil {
         try (CloseableHttpClient httpClient = getHttpClient();
              CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -324,9 +434,13 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -368,9 +482,13 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpGet, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, true);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -397,9 +515,13 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
         }
     }
 
@@ -407,7 +529,7 @@ public class HttpUtil {
      * 获取请求返回对象
      * @param response
      * @return cn.xanderye.util.HttpUtil.ResEntity
-     * @author yezhendong
+     * @author XanderYe
      * @date 2021/8/30
      */
     private static ResEntity getResEntity(CloseableHttpResponse response, boolean binary) throws IOException {
@@ -612,7 +734,7 @@ public class HttpUtil {
      * 重试配置
      * @param
      * @return org.apache.http.client.HttpRequestRetryHandler
-     * @author yezhendong
+     * @author XanderYe
      * @date 2021/6/24
      */
     private static HttpRequestRetryHandler retryHandler() {
@@ -707,6 +829,55 @@ public class HttpUtil {
         enableRetry = retry;
         if (customRetry > 0) {
             retryCount = customRetry;
+        }
+    }
+
+    /**
+     * 启用连接池
+     * @param customMaxTotal
+     * @param customMaxPerRoute
+     * @param customIdleTimeout
+     * @param customMonitorPeriod
+     * @return void
+     * @author XanderYe
+     * @date 2022/1/21
+     */
+    public static void enableConnectionPool(int customMaxTotal, int customMaxPerRoute, int customIdleTimeout, int customMonitorPeriod) {
+        maxTotal = customMaxTotal;
+        maxPerRoute = customMaxPerRoute;
+        idleTimeout = customIdleTimeout;
+        monitorPeriod = customMonitorPeriod;
+        enableConnectionPool();
+    }
+
+    /**
+     * 启用连接池
+     * @return void
+     * @author XanderYe
+     * @date 2022/1/21
+     */
+    public static void enableConnectionPool() {
+        connectionPool.set(true);
+        initPoolingHttpClient();
+    }
+
+    /**
+     * 停用连接池
+     * @param
+     * @return void
+     * @author XanderYe
+     * @date 2022/1/21
+     */
+    public static void disableConnectionPool() {
+        try {
+            connectionPool.set(false);
+            httpClient.close();
+            httpClient = null;
+            connectionManager = null;
+            monitorExecutor.shutdown();
+            monitorExecutor = null;
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
