@@ -202,6 +202,7 @@ public class HttpUtil {
                     connectionManager.setMaxTotal(maxTotal);
                     connectionManager.setDefaultMaxPerRoute(maxPerRoute);
                     httpClient = custom().setDefaultRequestConfig(config).setConnectionManager(connectionManager).build();
+                    connectionPool.set(true);
                     //开启监控线程,对异常和空闲线程进行关闭
                     monitorExecutor = Executors.newScheduledThreadPool(1);
                     monitorExecutor.scheduleAtFixedRate(() -> {
@@ -857,7 +858,6 @@ public class HttpUtil {
      * @date 2022/1/21
      */
     public static void enableConnectionPool() {
-        connectionPool.set(true);
         initPoolingHttpClient();
     }
 
@@ -868,7 +868,7 @@ public class HttpUtil {
      * @author XanderYe
      * @date 2022/1/21
      */
-    public static void disableConnectionPool() {
+    public static synchronized void disableConnectionPool() {
         try {
             connectionPool.set(false);
             httpClient.close();
