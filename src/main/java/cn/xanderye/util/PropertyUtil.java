@@ -1,8 +1,11 @@
 package cn.xanderye.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -11,9 +14,10 @@ import java.util.Properties;
  * @author XanderYe
  * @date 2020/3/15
  */
+@Slf4j
 public class PropertyUtil {
 
-    private static Properties properties = null;
+    private static volatile Properties properties = null;
 
     private static String filePath = null;
 
@@ -31,33 +35,39 @@ public class PropertyUtil {
     /**
      * 初始化
      *
-     * @param url
+     * @param path
      * @return void
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static void init(String url) {
-        filePath = url == null ? System.getProperty("user.dir") + File.separator + "config.properties" : url;
-        File file = new File(filePath);
-        FileInputStream fis = null;
-        InputStreamReader inputStreamReader = null;
-        try {
-            if (!file.exists()) {
-                file.createNewFile();
-            }
-            fis = new FileInputStream(file);
-            inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8);
-            properties = new Properties();
-            properties.load(inputStreamReader);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (fis != null) {
-                    fis.close();
+    public static void init(String path) {
+        if (properties == null) {
+            synchronized (PropertyUtil.class) {
+                if (properties == null) {
+                    if (path == null) {
+                        path = System.getProperty("user.dir");
+                    }
+                    filePath = path.endsWith("/") || path.endsWith("\\") ? path + "config.properties" : path;
+                    File file = new File(filePath);
+                    if (!file.exists()) {
+                        try {
+                            if (!file.createNewFile()) {
+                                log.error("Creating {} failed.", filePath);
+                                return;
+                            }
+                        } catch (IOException e) {
+                            log.error("Error when creating {}: {}", filePath, e.getMessage());
+                            return;
+                        }
+                    }
+                    try (FileInputStream fis = new FileInputStream(file);
+                         InputStreamReader inputStreamReader = new InputStreamReader(fis, StandardCharsets.UTF_8)) {
+                        properties = new Properties();
+                        properties.load(inputStreamReader);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
@@ -78,6 +88,22 @@ public class PropertyUtil {
     }
 
     /**
+     * 获取值，为空返回默认值
+     *
+     * @param key
+     * @param defaultValue
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2022/1/21
+     */
+    public static String get(String key, String defaultValue) {
+        if (properties == null) {
+            return defaultValue;
+        }
+        return Optional.ofNullable(properties.getProperty(key)).orElse(defaultValue);
+    }
+
+    /**
      * 重写保存方法，不转义
      *
      * @param key
@@ -86,7 +112,7 @@ public class PropertyUtil {
      * @author XanderYe
      * @date 2020-03-15
      */
-    public static synchronized void save(String key, String value) {
+    public static void save(String key, String value) {
         save(key, value, null);
     }
 
@@ -122,11 +148,8 @@ public class PropertyUtil {
      * @date 2020-03-15
      */
     private static void append(String key, String value, String comment) {
-        FileOutputStream fos = null;
-        BufferedWriter bw = null;
-        try {
-            fos = new FileOutputStream(new File(filePath), true);
-            bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
+        try (FileOutputStream fos = new FileOutputStream(filePath);
+             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8))) {
             if (comment != null) {
                 bw.write("#" + comment);
                 bw.newLine();
@@ -134,18 +157,7 @@ public class PropertyUtil {
             bw.write(key + "=" + value);
             bw.newLine();
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (bw != null) {
-                    bw.close();
-                }
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            log.error("Error when appending key {}: {}", key, e.getMessage());
         }
     }
 
@@ -160,11 +172,8 @@ public class PropertyUtil {
      * @date 2020-03-15
      */
     private static void rewrite(String key, String value, String comment) {
-        FileOutputStream fos = null;
-        BufferedWriter bw = null;
-        try {
-            fos = new FileOutputStream(new File(filePath));
-            bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8));
+        try (FileOutputStream fos = new FileOutputStream(filePath);
+             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8))) {
             Enumeration<?> enumeration = properties.keys();
             while (enumeration.hasMoreElements()) {
                 String k = (String) enumeration.nextElement();
@@ -182,18 +191,7 @@ public class PropertyUtil {
             }
             bw.flush();
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (bw != null) {
-                    bw.close();
-                }
-                if (fos != null) {
-                    fos.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            log.error("Error when rewriting key {}: {}", key, e.getMessage());
         }
     }
 }
