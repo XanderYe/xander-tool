@@ -1,10 +1,13 @@
 package cn.xanderye.util;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -212,5 +215,23 @@ public class CodecUtil {
         }
         sb.append(unicodeStr, count, length);
         return sb.toString();
+    }
+
+    /**
+     * MD5算法
+     * @param str
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2022/3/3
+     */
+    public static String MD5(String str) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(str.getBytes());
+            byte[] bytes = md.digest();
+            return new BigInteger(1, bytes).toString(16);
+        } catch (NoSuchAlgorithmException ignored) {
+        }
+        return null;
     }
 }
