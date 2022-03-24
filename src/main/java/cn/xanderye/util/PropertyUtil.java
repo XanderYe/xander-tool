@@ -45,7 +45,7 @@ public class PropertyUtil {
             synchronized (PropertyUtil.class) {
                 if (properties == null) {
                     if (path == null) {
-                        path = System.getProperty("user.dir");
+                        path = System.getProperty("user.dir") + File.separator;
                     }
                     filePath = path.endsWith("/") || path.endsWith("\\") ? path + "config.properties" : path;
                     File file = new File(filePath);
@@ -148,7 +148,7 @@ public class PropertyUtil {
      * @date 2020-03-15
      */
     private static void append(String key, String value, String comment) {
-        try (FileOutputStream fos = new FileOutputStream(filePath);
+        try (FileOutputStream fos = new FileOutputStream(filePath, true);
              BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos, StandardCharsets.UTF_8))) {
             if (comment != null) {
                 bw.write("#" + comment);
@@ -156,6 +156,7 @@ public class PropertyUtil {
             }
             bw.write(key + "=" + value);
             bw.newLine();
+            bw.flush();
         } catch (IOException e) {
             log.error("Error when appending key {}: {}", key, e.getMessage());
         }
