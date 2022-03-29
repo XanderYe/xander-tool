@@ -1,13 +1,17 @@
 package cn.xanderye.util;
 
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.lang3.StringUtils;
+
 import javax.crypto.Cipher;
 import java.io.*;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import java.security.spec.*;
 
 /**
  * Created on 2020/5/19.
@@ -110,6 +114,40 @@ public class RSAUtil {
     }
 
     /**
+     * 根据给定的16进制系数和专用指数字符串构造一个RSA专用的公钥
+     *
+     * @param hexModulus 十六进制系数
+     * @param hexPublicExponent 十六进制专用指数
+     * @return java.security.interfaces.RSAPublicKey
+     * @author XanderYe
+     * @date 2022/3/29
+     */
+    public static RSAPublicKey generatePublicKey(String hexModulus, String hexPublicExponent) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        if(StringUtils.isBlank(hexModulus) || StringUtils.isBlank(hexPublicExponent)) {
+            return null;
+        }
+        byte[] modulus = CodecUtil.hexStringToByteArray(hexModulus);
+        byte[] publicExponent = CodecUtil.hexStringToByteArray(hexPublicExponent);
+        return generatePublicKey(modulus, publicExponent);
+    }
+
+    /**
+     * 根据给定的系数和专用指数字符串构造一个RSA专用的公钥
+     *
+     * @param modulus 系数
+     * @param publicExponent 专用指数
+     * @return java.security.interfaces.RSAPublicKey
+     * @author XanderYe
+     * @date 2022/3/29
+     */
+    public static RSAPublicKey generatePublicKey(byte[] modulus, byte[] publicExponent) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        RSAPublicKeySpec publicKeySpec = new RSAPublicKeySpec(new BigInteger(modulus),
+                new BigInteger(publicExponent));
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+        return (RSAPublicKey) keyFactory.generatePublic(publicKeySpec);
+    }
+
+    /**
      * 从文件中加载私钥
      *
      * @param path
@@ -149,6 +187,52 @@ public class RSAUtil {
     }
 
     /**
+     * 根据给定的16进制系数和专用指数字符串构造一个RSA专用的私钥
+     *
+     * @param hexModulus 十六进制系数
+     * @param hexPrivateExponent 十六进制专用指数
+     * @return java.security.interfaces.RSAPrivateKey
+     * @author XanderYe
+     * @date 2022/3/29
+     */
+    public static RSAPrivateKey generatePrivateKey(String hexModulus, String hexPrivateExponent) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        if(StringUtils.isBlank(hexModulus) || StringUtils.isBlank(hexPrivateExponent)) {
+            return null;
+        }
+        byte[] modulus = CodecUtil.hexStringToByteArray(hexModulus);
+        byte[] publicExponent = CodecUtil.hexStringToByteArray(hexPrivateExponent);
+        return generatePrivateKey(modulus, publicExponent);
+    }
+
+    /**
+     * 根据给定的系数和专用指数字符串构造一个RSA专用的私钥
+     *
+     * @param modulus 系数
+     * @param privateExponent 专用指数
+     * @return java.security.interfaces.RSAPrivateKey
+     * @author XanderYe
+     * @date 2022/3/29
+     */
+    public static RSAPrivateKey generatePrivateKey(byte[] modulus, byte[] privateExponent) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        RSAPrivateKeySpec privateKeySpec = new RSAPrivateKeySpec(new BigInteger(modulus),
+                new BigInteger(privateExponent));
+        KeyFactory keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
+        return (RSAPrivateKey) keyFactory.generatePrivate(privateKeySpec);
+    }
+
+    /**
+     * 使用公钥加密
+     * @param plainTextData
+     * @param publicKey
+     * @return byte[]
+     * @author XanderYe
+     * @date 2020/5/19
+     */
+    public static byte[] encrypt(String plainTextData, RSAPublicKey publicKey) throws Exception {
+        return encrypt(plainTextData.getBytes(StandardCharsets.UTF_8), publicKey);
+    }
+
+    /**
      * 使用公钥加密
      * @param plainTextData
      * @param publicKey
@@ -182,6 +266,18 @@ public class RSAUtil {
         Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
         return cipher.doFinal(plainTextData);
+    }
+
+    /**
+     * 使用私钥加密
+     * @param plainTextData
+     * @param privateKey
+     * @return byte[]
+     * @author XanderYe
+     * @date 2020/5/19
+     */
+    public static byte[] encrypt(String plainTextData, RSAPrivateKey privateKey) throws Exception {
+       return encrypt(plainTextData.getBytes(StandardCharsets.UTF_8), privateKey);
     }
 
     /**
