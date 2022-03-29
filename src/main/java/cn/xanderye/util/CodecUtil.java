@@ -131,10 +131,7 @@ public class CodecUtil {
             if (hex.length() < 2) {
                 sb.append(0);
             }
-            sb.append(hex.toUpperCase()).append(" ");
-        }
-        if (sb.length() > 0) {
-            sb.deleteCharAt(sb.length() - 1);
+            sb.append(hex);
         }
         return sb.toString();
     }
