@@ -51,7 +51,7 @@
     <dependency>
       <groupId>com.alibaba</groupId>
       <artifactId>fastjson</artifactId>
-      <version>1.2.78</version>
+      <version>1.2.80</version>
     </dependency>
 
     <!--Freemarker模板-->
@@ -72,14 +72,14 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>1.7.32</version>
+      <version>1.7.36</version>
     </dependency>
 
     <!--slf4j简单实现-->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
-      <version>1.7.32</version>
+      <version>1.7.36</version>
       <optional>true</optional>
     </dependency>
   </dependencies>

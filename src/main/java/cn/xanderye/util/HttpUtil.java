@@ -714,6 +714,24 @@ public class HttpUtil {
     }
 
     /**
+     * cookie转字符串
+     * @param cookieMap
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2022/3/29
+     */
+    public static String cookiesToString(Map<String, Object> cookieMap) {
+        if (cookieMap == null || cookieMap.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Object> entry : cookieMap.entrySet()) {
+            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
+        }
+        return sb.toString();
+    }
+
+    /**
      * 忽略证数配置
      *
      * @param
@@ -886,6 +904,10 @@ public class HttpUtil {
         if ('/' != base.charAt(base.length() - 1)) {
             baseUrl += "/";
         }
+    }
+
+    public static String getBaseUrl() {
+        return baseUrl;
     }
 
     @Data
