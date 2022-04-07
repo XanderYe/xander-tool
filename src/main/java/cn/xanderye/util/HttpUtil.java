@@ -401,8 +401,8 @@ public class HttpUtil {
         // 添加cookies
         addCookies(httpPost, cookies);
         HttpClientContext httpClientContext = new HttpClientContext();
-        try (CloseableHttpClient httpClient = getHttpClient();
-             CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
             return getResEntity(response, false);
         } finally {
             if (!connectionPool.get()) {
