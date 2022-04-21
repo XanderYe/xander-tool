@@ -53,7 +53,7 @@ public class HttpUtil {
      */
     private static final int DEFAULT_CONNECT_TIMEOUT = 30000;
     /**
-     * 默认socket连接超时
+     * 默认读取超时
      */
     private static final int DEFAULT_SOCKET_TIMEOUT = 30000;
     /**
@@ -104,13 +104,13 @@ public class HttpUtil {
      */
     private static boolean enableRetry = false;
     /**
-     * socket连接超时
-     */
-    private static int socketTimeout;
-    /**
      * 连接超时
      */
     private static int connectTimeout;
+    /**
+     * 读取超时
+     */
+    private static int socketTimeout;
     /**
      * 重试次数
      */
