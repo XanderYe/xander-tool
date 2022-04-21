@@ -95,6 +95,38 @@ public class CodecUtil {
     /**
      * URL编码
      * @param str
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/29
+     */
+    public static String urlEncode(String str) {
+        try {
+            return URLEncoder.encode(str, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return str;
+    }
+
+    /**
+     * URL解码
+     * @param str
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/29
+     */
+    public static String urlDecode(String str) {
+        try {
+            return URLDecoder.decode(str, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return str;
+    }
+
+    /**
+     * URL编码
+     * @param str
      * @param charset
      * @return java.lang.String
      * @author XanderYe
