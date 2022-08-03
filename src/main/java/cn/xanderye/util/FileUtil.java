@@ -166,4 +166,30 @@ public class FileUtil {
         }
         return null;
     }
+
+    /**
+     * 读取文本文件
+     * @param filePath
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2022/8/3
+     */
+    public static String readFileString(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new FileNotFoundException();
+        }
+        if (file.isDirectory()) {
+            throw new IOException("目标文件是文件夹");
+        }
+        try (FileReader fr = new FileReader(file);
+             BufferedReader br = new BufferedReader(fr)) {
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                sb.append(line).append(SystemUtil.getLineBreak());
+            }
+            return sb.toString();
+        }
+    }
 }
