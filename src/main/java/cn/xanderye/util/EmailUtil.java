@@ -38,6 +38,7 @@ public class EmailUtil {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             InputStream is = classLoader.getResourceAsStream("email.properties");
             if (is != null) {
+                mailConfig = new Properties();
                 mailConfig.load(is);
                 username = mailConfig.getProperty("mail.username");
                 password = mailConfig.getProperty("mail.password");
@@ -71,9 +72,7 @@ public class EmailUtil {
      */
     public static void sendSimpleEmail(String title, String content, String toEmail) throws MessagingException {
         Session session = Session.getInstance(mailConfig);
-        session.setDebug(true);
         Message msg = new MimeMessage(session);
-
         // 标题
         msg.setSubject(title);
         // 内容
@@ -106,7 +105,6 @@ public class EmailUtil {
             throw new RuntimeException("接收人不为空");
         }
         Session session = Session.getInstance(mailConfig);
-        session.setDebug(true);
         Message msg = new MimeMessage(session);
 
         InternetAddress[] addressesTo = new InternetAddress[toEmailList.size()];
@@ -137,7 +135,7 @@ public class EmailUtil {
         msg.saveChanges();
 
         Transport transport = session.getTransport();
-        transport.connect(username,password);
+        transport.connect(username, password);
         transport.sendMessage(msg, msg.getAllRecipients());
         transport.close();
     }
