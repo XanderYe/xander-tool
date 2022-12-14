@@ -1,6 +1,7 @@
 package cn.xanderye.util;
 
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -68,9 +69,11 @@ public class MsgPushUtil {
      */
     public static String dingTalkBotPush(String token, String secret, String content, boolean isAtAll, List<String> atMobileList) throws IOException, InvalidKeyException, NoSuchAlgorithmException {
         String webhook = DB_BOT_URL.replace("${token}", token);
-        long timestamp = System.currentTimeMillis();
-        String sign = getSign(timestamp, secret);
-        webhook = webhook + "&timestamp=" + timestamp + "&sign=" + sign;
+        if (StringUtils.isNotEmpty(secret)) {
+            long timestamp = System.currentTimeMillis();
+            String sign = getSign(timestamp, secret);
+            webhook = webhook + "&timestamp=" + timestamp + "&sign=" + sign;
+        }
         JSONObject atJson = new JSONObject();
         // 是否通知所有人
         atJson.put("isAtAll", isAtAll);
