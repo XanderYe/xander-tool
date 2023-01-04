@@ -67,7 +67,19 @@ public class CodecUtil {
      * @date 2021/1/29
      */
     public static byte[] base64DecodeToByteArray(String base64Str) {
-        return Base64.getMimeDecoder().decode(base64Str);
+        return Base64.getMimeDecoder().decode(base64Str.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * base64字符串转byte数组
+     * @param base64Str
+     * @param charset
+     * @return byte[]
+     * @author XanderYe
+     * @date 2021/1/29
+     */
+    public static byte[] base64DecodeToByteArray(String base64Str, Charset charset) {
+        return Base64.getMimeDecoder().decode(base64Str.getBytes(charset));
     }
 
     /**
