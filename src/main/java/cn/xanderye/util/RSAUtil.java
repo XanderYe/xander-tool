@@ -25,9 +25,13 @@ public class RSAUtil {
      */
     public static final String SIGNATURE_ALGORITHM = "MD5withRSA";
     /**
-     * KEY算法
+     * 密钥算法
      */
     public static final String KEY_ALGORITHM = "RSA";
+    /**
+     * 加解密算法/工作模式/填充方式
+     */
+    public static final String KEY_ALGORITHM_STR = "RSA/ECB/PKCS1Padding";
 
     /**
      * 随机生成密钥对
@@ -245,7 +249,7 @@ public class RSAUtil {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM_STR);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
         return cipher.doFinal(plainTextData);
     }
@@ -263,7 +267,7 @@ public class RSAUtil {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM_STR);
         cipher.init(Cipher.ENCRYPT_MODE, privateKey);
         return cipher.doFinal(plainTextData);
     }
@@ -293,7 +297,7 @@ public class RSAUtil {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM_STR);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
         return cipher.doFinal(cipherData);
     }
@@ -311,7 +315,7 @@ public class RSAUtil {
             return null;
         }
         // 使用默认RSA
-        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM);
+        Cipher cipher = Cipher.getInstance(KEY_ALGORITHM_STR);
         cipher.init(Cipher.DECRYPT_MODE, publicKey);
         return cipher.doFinal(cipherData);
     }
