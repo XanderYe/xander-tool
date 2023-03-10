@@ -275,4 +275,22 @@ public class CodecUtil {
         }
         return null;
     }
+
+    /**
+     * SHA256算法
+     * @param str
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2022/3/3
+     */
+    public static String sha256(String str) {
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            messageDigest.update(str.getBytes());
+            byte[] bytes = messageDigest.digest();
+            return new BigInteger(1, bytes).toString(16);
+        } catch (NoSuchAlgorithmException ignored) {
+        }
+        return null;
+    }
 }
