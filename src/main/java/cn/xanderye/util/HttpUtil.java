@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
@@ -742,7 +743,8 @@ public class HttpUtil {
     private static SSLConnectionSocketFactory ignoreCertificates() {
         try {
             SSLContext sslContext = new SSLContextBuilder().loadTrustMaterial(null, (chain, authType) -> true).build();
-            return new SSLConnectionSocketFactory(sslContext);
+            return new SSLConnectionSocketFactory(sslContext, new String[] { "TLSv1.2" },
+                    null, NoopHostnameVerifier.INSTANCE);
         } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
             e.printStackTrace();
         }
