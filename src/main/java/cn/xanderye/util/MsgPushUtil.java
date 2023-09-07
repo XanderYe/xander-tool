@@ -93,6 +93,44 @@ public class MsgPushUtil {
     }
 
     /**
+     * 钉钉机器人推送
+     *
+     * @see <a href="https://developers.dingtalk.com/document/app/custom-robot-access">钉钉机器人开发文档</a>
+     * @param token
+     * @param secret
+     * @param title
+     * @param content
+     * @param isAtAll      是否@全体
+     * @param atMobileList @的手机号列表
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2021/1/23
+     */
+    public static String dingTalkBotPushMarkdown(String token, String secret, String title, String content, boolean isAtAll, List<String> atMobileList) throws IOException, InvalidKeyException, NoSuchAlgorithmException {
+        String webhook = DB_BOT_URL.replace("${token}", token);
+        long timestamp = System.currentTimeMillis();
+        String sign = getSign(timestamp, secret);
+        webhook = webhook + "&timestamp=" + timestamp + "&sign=" + sign;
+        JSONObject atJson = new JSONObject();
+        // 是否通知所有人
+        atJson.put("isAtAll", isAtAll);
+        // 通知人列表
+        if (!isAtAll) {
+            atJson.put("atMobiles", atMobileList);
+        }
+        // 消息内容
+        JSONObject markdown = new JSONObject();
+        markdown.put("title", title);
+        markdown.put("text", content);
+        // 请求体
+        JSONObject params = new JSONObject();
+        params.put("msgtype", "markdown");
+        params.put("markdown", markdown);
+        params.put("at", atJson);
+        return HttpUtil.doPostJSON(webhook, params.toJSONString()).getResponse();
+    }
+
+    /**
      * ios bark推送
      *
      * @see <a href="https://apps.apple.com/cn/app/bark-customed-notifications/id1403753865">Bark</a>
