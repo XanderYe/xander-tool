@@ -821,6 +821,9 @@ public class HttpUtil {
                 }
             }
         }
+        if (paramSb.length() > 0) {
+            paramSb.deleteCharAt(paramSb.length() - 1);
+        }
         return paramSb.toString();
     }
 
