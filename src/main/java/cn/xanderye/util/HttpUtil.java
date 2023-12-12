@@ -337,6 +337,57 @@ public class HttpUtil {
     }
 
     /**
+     * 检查URL
+     * @param url
+     * @param headers
+     * @param cookies
+     * @param params
+     * @return int
+     * @author XanderYe
+     * @date 2023/12/6
+     */
+    public static CheckEntity doCheck(String url, Map<String, Object> headers, Map<String, Object> cookies, Map<String, Object> params) throws IOException {
+        url = baseUrl + url;
+        // 拼接参数
+        if (params != null && !params.isEmpty()) {
+            List<NameValuePair> pairs = new ArrayList<>(params.size());
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                String value = entry.getValue() == null ? null : (entry.getValue()).toString();
+                if (value != null) {
+                    pairs.add(new BasicNameValuePair(entry.getKey(), value));
+                }
+            }
+            try {
+                String parameters = EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
+                String symbol = url.contains("?") ? "&" : "?";
+                // 判断是否已带参数
+                url += symbol + parameters;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        HttpGet httpGet = new HttpGet(url);
+        // 添加headers
+        addHeaders(httpGet, headers);
+        // 添加cookies
+        addCookies(httpGet, cookies);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        CloseableHttpClient httpClient = getHttpClient();
+        long start = System.currentTimeMillis();
+        try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
+            long end = System.currentTimeMillis();
+            CheckEntity checkEntity = new CheckEntity();
+            checkEntity.setStatusCode(response.getStatusLine().getStatusCode());
+            checkEntity.setDelay(end - start);
+            return checkEntity;
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
+        }
+    }
+
+    /**
      * post请求基础方法
      *
      * @param url
@@ -539,7 +590,7 @@ public class HttpUtil {
         ResEntity resEntity = new ResEntity();
         resEntity.setStatusCode(statusCode);
         resEntity.setHeaders(getHeaders(response));
-        resEntity.setCookies(formatCookies(getCookieString(response)));
+        resEntity.setCookies(parseCookies(getCookieString(response)));
         HttpEntity resultEntity = response.getEntity();
         if (resultEntity != null) {
             if (binary) {
@@ -632,18 +683,18 @@ public class HttpUtil {
     }
 
     /**
-     * 格式化请求头
+     * 请求头转对象
      *
      * @param headerString
      * @return java.util.Map<java.lang.String, java.lang.Object>
      * @author XanderYe
      * @date 2020/4/1
      */
-    public static Map<String, Object> formatHeaders(String headerString) {
+    public static Map<String, Object> parseHeaders(String headerString) {
+        Map<String, Object> headerMap = new HashMap<>(16);
         if (headerString != null && !"".equals(headerString)) {
             String[] headers = headerString.split(";");
             if (headers.length > 0) {
-                Map<String, Object> headerMap = new HashMap<>(16);
                 for (String header : headers) {
                     int index = header.indexOf(":");
                     if (index > 0) {
@@ -652,21 +703,40 @@ public class HttpUtil {
                         headerMap.put(k, v);
                     }
                 }
-                return headerMap;
             }
         }
-        return null;
+        return headerMap;
     }
 
     /**
-     * 格式化cookie
+     * 请求头转字符串
+     * @param headers
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2023/12/12
+     */
+    public static String formatHeaders(Map<String, Object> headers) {
+        StringBuilder headerSb = new StringBuilder();
+        if (headers != null && !headers.isEmpty()) {
+            for (String key : headers.keySet()) {
+                Object valueObj = headers.get(key);
+                if (valueObj != null) {
+                    headerSb.append(key).append(":").append(valueObj).append(";");
+                }
+            }
+        }
+        return headerSb.toString();
+    }
+
+    /**
+     * cookie转对象
      *
      * @param cookieString
      * @return java.util.Map<java.lang.String, java.lang.Object>
      * @author XanderYe
      * @date 2020/4/1
      */
-    public static Map<String, Object> formatCookies(String cookieString) {
+    public static Map<String, Object> parseCookies(String cookieString) {
         Map<String, Object> cookieMap = new HashMap<>(16);
         if (cookieString != null && !"".equals(cookieString)) {
             String[] cookies = cookieString.split(";");
@@ -687,14 +757,34 @@ public class HttpUtil {
     }
 
     /**
-     * 格式化请求体
+     * cookie转字符串
+     * @param cookies
+     * @return java.lang.String
+     * @author XanderYe
+     * @date 2023/12/12
+     */
+    public static String formatCookies(Map<String, Object> cookies) {
+        StringBuilder cookieSb = new StringBuilder();
+        if (cookies != null && !cookies.isEmpty()) {
+            for (String key : cookies.keySet()) {
+                Object valueObj = cookies.get(key);
+                if (valueObj != null) {
+                    cookieSb.append(key).append("=").append(valueObj).append(";");
+                }
+            }
+        }
+        return cookieSb.toString();
+    }
+
+    /**
+     * 请求参数转对象
      *
      * @param parameterString
      * @return java.util.Map<java.lang.String, java.lang.Object>
      * @author XanderYe
      * @date 2020/4/1
      */
-    public static Map<String, Object> formatParameters(String parameterString) {
+    public static Map<String, Object> parseParameters(String parameterString) {
         if (parameterString != null) {
             String[] parameters = parameterString.split("&");
             if (parameters.length > 0) {
@@ -715,21 +805,23 @@ public class HttpUtil {
     }
 
     /**
-     * cookie转字符串
-     * @param cookieMap
+     * 请求参数转字符串
+     * @param params
      * @return java.lang.String
      * @author XanderYe
-     * @date 2022/3/29
+     * @date 2023/12/12
      */
-    public static String cookiesToString(Map<String, Object> cookieMap) {
-        if (cookieMap == null || cookieMap.isEmpty()) {
-            return "";
+    public static String formatParameters(Map<String, Object> params) {
+        StringBuilder paramSb = new StringBuilder();
+        if (params != null && !params.isEmpty()) {
+            for (String key : params.keySet()) {
+                Object valueObj = params.get(key);
+                if (valueObj != null) {
+                    paramSb.append(key).append("=").append(valueObj).append("&");
+                }
+            }
         }
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Object> entry : cookieMap.entrySet()) {
-            sb.append(entry.getKey()).append("=").append(entry.getValue()).append("; ");
-        }
-        return sb.toString();
+        return paramSb.toString();
     }
 
     /**
@@ -924,5 +1016,17 @@ public class HttpUtil {
         private Map<String, Object> headers;
 
         private Map<String, Object> cookies;
+    }
+
+    @Data
+    public static class CheckEntity {
+        /**
+         * 状态码
+         */
+        private Integer statusCode;
+        /**
+         * 延迟
+         */
+        private Long delay;
     }
 }
