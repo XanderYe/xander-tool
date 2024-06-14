@@ -430,6 +430,38 @@ public class HttpUtil {
     }
 
     /**
+     * post请求基础方法
+     *
+     * @param url
+     * @param headers
+     * @param parList
+     * @return cn.xanderye.util.HttpUtil.ResEntity
+     * @author XanderYe
+     * @date 2024/4/11
+     */
+    public static ResEntity doPostPair(String url, Map<String, Object> headers, Map<String, Object> cookies, List<NameValuePair> parList) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + url);
+        try {
+            httpPost.setEntity(new UrlEncodedFormEntity(parList, CHARSET));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 添加headers
+        addHeaders(httpPost, headers);
+        // 添加cookies
+        addCookies(httpPost, cookies);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+            return getResEntity(response, false);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
+        }
+    }
+
+    /**
      * POST提交JSON基础方法
      *
      * @param url
