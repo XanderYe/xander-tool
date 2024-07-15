@@ -1,7 +1,5 @@
 package cn.xanderye.util;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -12,7 +10,6 @@ import java.lang.reflect.Method;
  * @description:
  * @date 2024/7/5 9:33
  */
-@Slf4j
 public class ReflectUtil {
 
     /**
@@ -38,7 +35,7 @@ public class ReflectUtil {
             field.setAccessible(true);
             return field.get(obj);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            log.error("invoke field [{}] get error: {}", fieldName, e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -66,7 +63,7 @@ public class ReflectUtil {
            field.setAccessible(true);
            field.set(obj, value);
        } catch (NoSuchFieldException | IllegalAccessException e) {
-           log.error("invoke field [{}] set error: {}", fieldName, e.getMessage());
+           e.printStackTrace();
        }
     }
 
@@ -76,9 +73,24 @@ public class ReflectUtil {
      * @return
      */
     public Object createObject(String className) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return createObject(clazz);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 创建一个无参数对象
+     * @param clazz
+     * @return
+     */
+    public Object createObject(Class<?> clazz) {
         Class<?>[] paramTypes = new Class[]{};
         Object[] args = new Object[]{};
-        return createObject(className, paramTypes, args);
+        return createObject(clazz, paramTypes, args);
     }
 
     /**
@@ -88,20 +100,37 @@ public class ReflectUtil {
      * @param arg
      * @return
      */
-    public Object createObject(String className, Class<?> paramType, Object arg) {
+    public static Object createObject(String className, Class<?> paramType, Object arg) {
+        try {
+            Class<?> clazz = Class.forName(className);
+            return createObject(clazz, paramType, arg);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 创建一个单参数对象
+     * @param clazz
+     * @param paramType
+     * @param arg
+     * @return
+     */
+    public static Object createObject(Class<?> clazz, Class<?> paramType, Object arg) {
         Class<?>[] paramTypes = new Class[]{paramType};
         Object[] args = new Object[]{arg};
-        return createObject(className, paramTypes, args);
+        return createObject(clazz, paramTypes, args);
     }
 
     /**
      * 创建一个多参数对象
-     * @param className
+     * @param clazz
      * @param paramTypes
      * @param args
      * @return
      */
-    public Object createObject(String className, Class<?>[] paramTypes, Object[] args) {
+    public static Object createObject(Class<?> clazz, Class<?>[] paramTypes, Object[] args) {
         try {
             if (paramTypes == null) {
                 paramTypes = new Class[]{};
@@ -109,12 +138,11 @@ public class ReflectUtil {
             if (args == null) {
                 args = new Object[]{};
             }
-            Class<?> clazz = Class.forName(className);
             Constructor<?> constructor = clazz.getDeclaredConstructor(paramTypes);
             constructor.setAccessible(true);
             return constructor.newInstance(args);
         } catch (Exception e) {
-            log.error("invoke createObject error: {}", e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
@@ -207,7 +235,7 @@ public class ReflectUtil {
             method.setAccessible(true);
             return method.invoke(obj, args);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            log.error("invoke method [{}] error: {}", methodName, e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
