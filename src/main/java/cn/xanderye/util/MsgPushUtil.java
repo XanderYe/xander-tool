@@ -62,7 +62,7 @@ public class MsgPushUtil {
      * @param title 推送的正文内容，如未提供 title，则为必填，支持markdown（在APP中显示）
      * @param content 推送的标题，如果未提供则使用 text 的内容
      * @return java.lang.String
-     * @author yezhendong
+     * @author XanderYe
      * @date 2024/9/29
      */
     public static String serverChan3Push(String sendKey, String tags, String title, String content) throws IOException {
