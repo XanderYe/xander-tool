@@ -26,6 +26,8 @@ public class MsgPushUtil {
 
     private static final String SERVER_CHAN_URL = "https://sc.ftqq.com/${scKey}.send";
 
+    private static final String SERVER_CHAN3_URL = " https://${sendkey}.push.ft07.com/send";
+
     private static final String DB_BOT_URL = "https://oapi.dingtalk.com/robot/send?access_token=${token}";
 
     private static final String BARK_URL = "https://api.day.app/${deviceId}/${content}";
@@ -50,6 +52,25 @@ public class MsgPushUtil {
         Map<String, Object> params = new HashMap<>(16);
         params.put("text", title);
         params.put("desp", content);
+        return HttpUtil.doPost(url, params).getResponse();
+    }
+
+    /**
+     *
+     * @param sendKey
+     * @param tags 标签列表，多个标签使用竖线分隔
+     * @param title 推送的正文内容，如未提供 title，则为必填，支持markdown（在APP中显示）
+     * @param content 推送的标题，如果未提供则使用 text 的内容
+     * @return java.lang.String
+     * @author yezhendong
+     * @date 2024/9/29
+     */
+    public static String serverChan3Push(String sendKey, String tags, String title, String content) throws IOException {
+        String url = SERVER_CHAN3_URL.replace("${sendkey}", sendKey).trim();
+        Map<String, Object> params = new HashMap<>(16);
+        params.put("tags", tags);
+        params.put("title", title);
+        params.put("text", content);
         return HttpUtil.doPost(url, params).getResponse();
     }
 
