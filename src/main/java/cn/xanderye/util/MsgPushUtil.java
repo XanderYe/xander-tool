@@ -59,8 +59,8 @@ public class MsgPushUtil {
      *
      * @param sendKey
      * @param tags 标签列表，多个标签使用竖线分隔
-     * @param title 推送的正文内容，如未提供 title，则为必填，支持markdown（在APP中显示）
-     * @param content 推送的标题，如果未提供则使用 text 的内容
+     * @param title 推送的标题，如果未提供则使用 text 的内容
+     * @param content 推送的内容
      * @return java.lang.String
      * @author XanderYe
      * @date 2024/9/29
@@ -70,7 +70,7 @@ public class MsgPushUtil {
         Map<String, Object> params = new HashMap<>(16);
         params.put("tags", tags);
         params.put("title", title);
-        params.put("text", content);
+        params.put("desp", content);
         return HttpUtil.doPost(url, params).getResponse();
     }
 
