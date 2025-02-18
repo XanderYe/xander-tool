@@ -1,6 +1,10 @@
 package cn.xanderye.util;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.config.CookieSpecs;
@@ -26,7 +30,9 @@ import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -38,6 +44,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -570,6 +577,91 @@ public class HttpUtil {
         CloseableHttpClient httpClient = getHttpClient();
         try (CloseableHttpResponse response = httpClient.execute(httpGet, httpClientContext)) {
             return getResEntity(response, true);
+        } finally {
+            if (!connectionPool.get()) {
+                httpClient.close();
+            }
+        }
+    }
+
+    /**
+     * 使用HTTP流式请求执行聊天完成任务
+     * 该方法主要用于与聊天API进行流式通信，实时处理返回的消息
+     *
+     * @param url 请求的URL地址，不包含基础URL部分
+     * @param apiKey API密钥，用于身份验证
+     * @param json 请求体的JSON字符串，包含请求的具体参数
+     * @param messageHandler 消息处理函数，用于处理接收到的聊天内容
+     * @throws IOException 当网络请求或响应处理发生错误时抛出
+     * @author XanderYe
+     * @date 2025/2/18
+     */
+    public static void streamChatCompletion(String url, String apiKey, String json, Consumer<String> messageHandler) throws IOException {
+        HttpPost httpPost = new HttpPost(baseUrl + url);
+        // 拼接参数
+        if (json != null && !"".equals(json)) {
+            StringEntity requestEntity = new StringEntity(json, CHARSET);
+            requestEntity.setContentEncoding(CHARSET);
+            requestEntity.setContentType("application/json");
+            httpPost.setEntity(requestEntity);
+        }
+        // 添加headers
+        Map<String, Object> headers = new HashMap<>();
+        if (StringUtils.isNotBlank(apiKey)) {
+            headers.put("Authorization", "Bearer " + apiKey);
+        }
+        addHeaders(httpPost, headers);
+        HttpClientContext httpClientContext = new HttpClientContext();
+        CloseableHttpClient httpClient = getHttpClient();
+        try (CloseableHttpResponse response = httpClient.execute(httpPost, httpClientContext)) {
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                try (BufferedReader reader = new BufferedReader(
+                        new InputStreamReader(entity.getContent()))) {
+                    String line;
+                    boolean think = false;
+                    while ((line = reader.readLine()) != null) {
+                        if (line.startsWith("data: ")) {
+                            String jsonData = line.substring(6).trim();
+                            if ("[DONE]".equals(jsonData)) {
+                                break;
+                            }
+
+                            try {
+                                JSONObject data = JSON.parseObject(jsonData);
+                                JSONArray choices = data.getJSONArray("choices");
+                                if (choices != null && !choices.isEmpty()) {
+                                    JSONObject choice = choices.getJSONObject(0);
+                                    JSONObject delta =  choice.getJSONObject("delta");
+                                    if (delta != null) {
+                                        String reasoningContent = delta.getString("reasoning_content");
+                                        if (StringUtils.isNotBlank(reasoningContent)) {
+                                            if (!think) {
+                                                messageHandler.accept("<think>");
+                                                think = true;
+                                            }
+                                            messageHandler.accept(reasoningContent);
+                                        }
+                                        String content = delta.getString("content");
+                                        if (StringUtils.isNotBlank(content)) {
+                                            if (think) {
+                                                messageHandler.accept("\n</think>\n\n");
+                                                think = false;
+                                            }
+                                            messageHandler.accept(content);
+                                        }
+                                    }
+                                }
+                            } catch (Exception e) {
+                                throw new IOException("Error parsing JSON: " + e.getMessage());
+                            }
+                        } else if (line.contains("error")) {
+                            throw new IOException(line);
+                        }
+                    }
+                }
+            }
+            EntityUtils.consume(entity);
         } finally {
             if (!connectionPool.get()) {
                 httpClient.close();
