@@ -72,7 +72,7 @@ public class ReflectUtil {
      * @param className
      * @return
      */
-    public Object createObject(String className) {
+    public static Object createObject(String className) {
         try {
             Class<?> clazz = Class.forName(className);
             return createObject(clazz);
@@ -87,7 +87,7 @@ public class ReflectUtil {
      * @param clazz
      * @return
      */
-    public Object createObject(Class<?> clazz) {
+    public static Object createObject(Class<?> clazz) {
         Class<?>[] paramTypes = new Class[]{};
         Object[] args = new Object[]{};
         return createObject(clazz, paramTypes, args);
