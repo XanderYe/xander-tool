@@ -288,7 +288,17 @@ public class CodecUtil {
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             messageDigest.update(str.getBytes());
             byte[] bytes = messageDigest.digest();
-            return new BigInteger(1, bytes).toString(16);
+
+            // 使用 StringBuilder 和格式化来确保前导零不会丢失
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : bytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
         } catch (NoSuchAlgorithmException ignored) {
         }
         return null;
